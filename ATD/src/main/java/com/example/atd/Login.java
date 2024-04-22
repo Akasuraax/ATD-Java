@@ -20,7 +20,6 @@ public class Login extends Application {
 
         primaryStage.setTitle("Login Page");
         primaryStage.setScene(scene);
-        primaryStage.setFullScreen(true);
 
         primaryStage.show();
     }

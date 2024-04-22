@@ -1,9 +1,14 @@
 package com.example.atd;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
+import java.util.HashMap;
+import java.util.Map;
 public class LoginController {
 
     @FXML
@@ -17,14 +22,29 @@ public class LoginController {
         String username = usernameField.getText();
         String password = passwordField.getText();
 
-        // Ici, vous devriez vérifier les identifiants de l'utilisateur.
-        // Pour cet exemple, nous allons simplement afficher les valeurs dans la console.
-        System.out.println("Username: " + username);
-        System.out.println("Password: " + password);
+        try {
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Accept", "application/json");
 
-        // Après la vérification, vous pouvez rediriger l'utilisateur vers une autre page.
-        // Par exemple, si les identifiants sont corrects :
-        // Parent root = FXMLLoader.load(getClass().getResource("nextPage.fxml"));
-        // primaryStage.setScene(new Scene(root, 300, 275));
+            String url = "http://10.188.41.155:8000/api/logIn";
+
+            Map<String, String> data = new HashMap<>();
+            data.put("email", username);
+            data.put("password", password);
+
+            String response = ApiRequester.postRequest(url,data);
+
+            Gson gson = new Gson();
+            User user = gson.fromJson(response, User.class);
+            System.out.println(user.toString());
+            System.out.println("Token: " + user.getToken());
+
+            System.out.println("Token: " + user.getToken());
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
     }
 }
