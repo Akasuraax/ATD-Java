@@ -1,5 +1,6 @@
 package com.example.atd.application;
 
+import com.example.atd.SessionManager;
 import com.example.atd.model.Ticket;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -42,5 +43,7 @@ public class TicketManager {
         primaryStage.setTitle("Gestion de Tickets");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        System.out.println(SessionManager.getInstance().getUserToken());
     }
 }

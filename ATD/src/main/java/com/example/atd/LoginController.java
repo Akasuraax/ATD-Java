@@ -2,6 +2,7 @@ package com.example.atd;
 
 import com.example.atd.adapter.UserDetailsTypeAdapter;
 import com.example.atd.application.TicketManager;
+import com.example.atd.exception.ApiRequestException;
 import com.example.atd.model.User;
 import com.example.atd.model.UserDetails;
 import com.google.gson.*;
@@ -10,11 +11,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.http.HttpResponse;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,11 +29,6 @@ public class LoginController {
     @FXML
     private PasswordField passwordField;
     private Stage mainStage; // Variable pour stocker le Stage
-
-    // Constructeur sans arguments requis par FXMLLoader
-    public LoginController() {
-        // Initialisation si nécessaire
-    }
 
     // Méthode pour définir le Stage après l'initialisation du contrôleur
     public void setMainStage(Stage mainStage) {
@@ -52,26 +50,47 @@ public class LoginController {
             data.put("email", username);
             data.put("password", password);
 
-            String response = ApiRequester.postRequest(url,data);
-            System.out.println(response);
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(UserDetails.class, new UserDetailsTypeAdapter())
-                    .create();
+            HttpResponse<String> response = ApiRequester.postRequest(url, data);
+            if(response.statusCode() == 200) {
+                System.out.println(response);
+                Gson gson = new GsonBuilder()
+                        .registerTypeAdapter(UserDetails.class, new UserDetailsTypeAdapter())
+                        .create();
+                String body = response.body();
+                // Conversion de la chaîne JSON en un objet User
+                JsonElement userElement = JsonParser.parseString(body).getAsJsonObject().get("user");
+                String token = JsonParser.parseString(body).getAsJsonObject().get("token").getAsString();
+                SessionManager.getInstance().setUserToken(token);
 
-            // Conversion de la chaîne JSON en un objet User
-            JsonElement userElement = JsonParser.parseString(response).getAsJsonObject().get("user");
-            String token = JsonParser.parseString(response).getAsJsonObject().get("token").getAsString();
+                UserDetails userDetails = gson.fromJson(userElement, UserDetails.class);
 
-            UserDetails userDetails = gson.fromJson(userElement, UserDetails.class);
+                User user = new User(token, userDetails);
+                SessionManager.getInstance().setUser(user);
+                SessionManager.getInstance().setUserToken(token);
 
-            User user = new User(token, userDetails);
-
+                Platform.runLater(() -> {
+                    new TicketManager(mainStage);
+                });
+            } else {
+                Platform.runLater(() -> {
+                    Alert alert = new Alert(Alert.AlertType.ERROR);
+                    alert.setTitle("Erreur");
+                    alert.setHeaderText(null);
+                    alert.setContentText("Identifiant incorrect");
+                    alert.showAndWait();
+                });
+            }
+        } catch (ApiRequestException e) {
+            // Afficher un message d'erreur à l'utilisateur
+            System.err.println("Erreur lors de la requête API : " + e.getMessage());
+            // Pour une application JavaFX, vous pouvez utiliser un dialogue pour afficher l'erreur
             Platform.runLater(() -> {
-                TicketManager ticketManager = new TicketManager(mainStage);
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Erreur de connexion");
+                alert.setHeaderText(null);
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
             });
-
-        } catch (Exception e) {
-            e.printStackTrace();
         }
     }
 }
