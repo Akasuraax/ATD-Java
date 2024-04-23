@@ -4,10 +4,10 @@ import com.google.gson.annotations.SerializedName;
 
 public class User {
     @SerializedName("token")
-    public String token;
+    private String token;
 
     @SerializedName("user")
-    public UserDetails user;
+    private UserDetails user;
 
     public User(String token, UserDetails user) {
         this.token = token;
