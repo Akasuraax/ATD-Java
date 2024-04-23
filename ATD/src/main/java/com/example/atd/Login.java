@@ -12,8 +12,11 @@ public class Login extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception{
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("login-view.fxml")));
-
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("login-view.fxml"));
+        Parent root = loader.load();
+        LoginController controller = loader.getController();
+        // Passage du Stage principal au contrôleur
+        controller.setMainStage(primaryStage);
         Scene scene = new Scene(root, 300, 275);
 
         scene.getStylesheets().add(getClass().getResource("/css/styleLogin.css").toExternalForm());
@@ -22,9 +25,5 @@ public class Login extends Application {
         primaryStage.setScene(scene);
 
         primaryStage.show();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

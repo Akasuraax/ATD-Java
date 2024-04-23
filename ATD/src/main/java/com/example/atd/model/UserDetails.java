@@ -1,6 +1,5 @@
-package com.example.atd;
+package com.example.atd.model;
 
-import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,12 +19,10 @@ public class UserDetails {
     private LocalDateTime createdAt;
     @SerializedName("updated_at")
     private LocalDateTime updatedAt;
-    @SerializedName("roles")
-    private List<Role> roles;
 
     public UserDetails() {}
 
-    public UserDetails(int id, String name, String forname, String email, int status, LocalDateTime createdAt, LocalDateTime updatedAt, List<Role> roles) {
+    public UserDetails(int id, String name, String forname, String email, int status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
         this.forname = forname;
@@ -33,7 +30,6 @@ public class UserDetails {
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.roles = roles;
     }
 
     public void setId(int id) {
@@ -74,14 +70,6 @@ public class UserDetails {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
-    }
-
-    public List<Role> getRoles() {
-        return roles;
-    }
-
-    public void setRoles(List<Role> roles) {
-        this.roles = roles;
     }
 
     public int getId() {

@@ -1,5 +1,6 @@
-package com.example.atd;
+package com.example.atd.adapter;
 
+import com.example.atd.model.UserDetails;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
@@ -46,10 +47,7 @@ public class UserDetailsTypeAdapter extends TypeAdapter<UserDetails> {
                     break;
                 case "updated_at":
                     String dateTimeStringU = in.nextString();
-                    userDetails.setUpdatedAt(LocalDateTime.parse(dateTimeStringU, DATE_TIME_FORMATTER));                    break;
-                case "roles":
-                    // Vous devez implémenter la logique pour lire la liste des rôles
-                    // Cela peut nécessiter un autre TypeAdapter pour la classe Role
+                    userDetails.setUpdatedAt(LocalDateTime.parse(dateTimeStringU, DATE_TIME_FORMATTER));
                     break;
                 default:
                     in.skipValue(); // Ignorez les champs supplémentaires

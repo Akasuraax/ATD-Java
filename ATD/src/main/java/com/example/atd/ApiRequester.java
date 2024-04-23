@@ -19,8 +19,9 @@ public class ApiRequester {
             String json = gson.toJson(requestBody);
 
             // Créer une requête POST avec le corps JSON
+            String path = "http://127.0.0.1:8000/api/";
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
+                    .uri(URI.create(path + url))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();

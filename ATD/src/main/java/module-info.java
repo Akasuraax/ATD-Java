@@ -8,4 +8,8 @@ module com.example.atd {
 
     opens com.example.atd to javafx.fxml;
     exports com.example.atd;
+    exports com.example.atd.adapter;
+    opens com.example.atd.adapter to javafx.fxml;
+    exports com.example.atd.model;
+    opens com.example.atd.model to javafx.fxml;
 }

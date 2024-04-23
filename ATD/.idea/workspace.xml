@@ -5,12 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="26687482-7ab4-4a0b-954d-f57ede929b42" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/ApiRequester.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/Login.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/LoginController.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/User.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/com/example/atd/login-view.fxml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/css/styleLogin.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/Main.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/adapter/UserDetailsTypeAdapter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/application/TicketCell.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/application/TicketManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/model/Ticket.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/model/UserDetails.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/atd/ApiRequester.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/ApiRequester.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/atd/Login.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/Login.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/atd/LoginController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/LoginController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/atd/Role.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/atd/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/example/atd/model/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/atd/UserDetails.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -36,10 +45,10 @@
       </MavenGeneralSettings>
     </option>
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "customColor": "",
-  "associatedIndex": 7
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 7
+}</component>
   <component name="ProjectId" id="2fSL1m5aUrhPnTA8DU2AoVlc5r7" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
@@ -49,13 +58,15 @@
   "keyToString": {
     "Application.HelloApplication.executor": "Run",
     "Application.Login.executor": "Run",
+    "Application.Main.executor": "Run",
     "Downloaded.Files.Path.Enabled": "true",
     "Repository.Attach.Annotations": "false",
     "Repository.Attach.JavaDocs": "false",
     "Repository.Attach.Sources": "false",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "main",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "feature/login",
     "kotlin-language-version-configured": "true",
     "list.type.of.created.stylesheet": "CSS",
     "node.js.detected.package.eslint": "true",
@@ -86,6 +97,7 @@
       <option name="presentableId" value="Default" />
       <updated>1713789323500</updated>
       <workItem from="1713789324555" duration="3864000" />
+      <workItem from="1713861409691" duration="11471000" />
     </task>
     <servers />
   </component>

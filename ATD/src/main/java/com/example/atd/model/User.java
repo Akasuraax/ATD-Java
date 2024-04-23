@@ -1,4 +1,4 @@
-package com.example.atd;
+package com.example.atd.model;
 
 import com.google.gson.annotations.SerializedName;
 
