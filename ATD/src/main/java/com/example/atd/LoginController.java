@@ -52,7 +52,6 @@ public class LoginController {
 
             HttpResponse<String> response = ApiRequester.postRequest(url, data);
             if(response.statusCode() == 200) {
-                System.out.println(response);
                 Gson gson = new GsonBuilder()
                         .registerTypeAdapter(UserDetails.class, new UserDetailsTypeAdapter())
                         .create();

@@ -1,21 +1,33 @@
 package com.example.atd.application;
 
-import com.example.atd.SessionManager;
+import com.example.atd.ApiRequester;
+import com.example.atd.adapter.SupportTypeAdapter;
+import com.example.atd.adapter.TicketTypeAdapter;
+import com.example.atd.exception.ApiRequestException;
+import com.example.atd.model.Support;
 import com.example.atd.model.Ticket;
+import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.net.http.HttpResponse;
+import java.util.Comparator;
+import java.util.List;
 
 public class TicketManager {
 
     private ObservableList<Ticket> unassignedTickets = FXCollections.observableArrayList();
     private ObservableList<Ticket> assignedTickets = FXCollections.observableArrayList();
     private Stage primaryStage; // Déclaration de la variable primaryStage
+    private ObservableList<Support> supportList;
 
     public TicketManager(Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -27,48 +39,135 @@ public class TicketManager {
     }
 
     public void start() {
-        unassignedTickets.add(new Ticket(1, "Ticket 1", false));
-        unassignedTickets.add(new Ticket(2, "Ticket 2", false));
-        assignedTickets.add(new Ticket(3, "Ticket 3", true));
+        unassignedTickets = getTickets();
+        supportList = getSupportList();
+
+        Button sortBySeverityButton = new Button("Trier par sévérité");
+        sortBySeverityButton.setOnAction(event -> sortBySeverity());
+
+        Button sortByStatusButton = new Button("Trier par statut");
+        sortByStatusButton.setOnAction(event -> sortByStatus());
+
+        Button clearSortButton = new Button("Annuler le tri");
+        clearSortButton.setOnAction(event -> clearSort());
+
+        Button reloadButton = new Button("Reload");
+        reloadButton.setOnAction(event -> unassignedTickets.setAll(getTickets()));
 
         ListView<Ticket> unassignedListView = new ListView<>();
         unassignedListView.setItems(unassignedTickets);
-        unassignedListView.setCellFactory(param -> new TicketCell());
+        unassignedListView.setCellFactory(TicketCell.forListView(supportList));
 
         ListView<Ticket> assignedListView = new ListView<>();
         assignedListView.setItems(assignedTickets);
-        assignedListView.setCellFactory(param -> new TicketCell());
+        assignedListView.setCellFactory(TicketCell.forListView(supportList));
 
-        // Création du ContextMenu
-        ContextMenu contextMenu = new ContextMenu();
+        // Création des Labels pour les titres
+        Label unassignedTicketsTitle = new Label("Tickets Non Assignés");
+        Label assignedTicketsTitle = new Label("Tickets Assignés");
 
-        // Création des MenuItem et ajout au ContextMenu
-        MenuItem menuItem1 = new MenuItem("Option 1");
-        MenuItem menuItem2 = new MenuItem("Option 2");
-        contextMenu.getItems().addAll(menuItem1, menuItem2);
+        // Créer une HBox pour contenir les boutons de tri
+        HBox sortingButtons = new HBox(sortBySeverityButton, sortByStatusButton, clearSortButton, reloadButton);
 
-        // Association du ContextMenu aux ListView
-        unassignedListView.setContextMenu(contextMenu);
-        assignedListView.setContextMenu(contextMenu);
+        // Créer une VBox pour contenir la liste des tickets non assignés et les boutons de tri
+        VBox unassignedTicketsLayout = new VBox(unassignedTicketsTitle, unassignedListView, sortingButtons);
+        unassignedTicketsLayout.setPrefSize(400, 700);
 
-        // Ajout des écouteurs d'événements aux MenuItem si nécessaire
-        menuItem1.setOnAction(event -> {
-            // Code à exécuter lorsque l'utilisateur sélectionne "Option 1"
-            System.out.println("Option 1 sélectionnée");
-        });
-
-        menuItem2.setOnAction(event -> {
-            // Code à exécuter lorsque l'utilisateur sélectionne "Option 2"
-            System.out.println("Option 2 sélectionnée");
-        });
-
-        HBox root = new HBox(unassignedListView, assignedListView);
+        HBox root = new HBox(unassignedTicketsLayout, assignedTicketsTitle, assignedListView);
         Scene scene = new Scene(root, 800, 600);
 
-        primaryStage.setTitle("Gestion de Tickets");
+        primaryStage.setTitle("Gestion des Tickets");
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        System.out.println(SessionManager.getInstance().getUserToken());
+    }
+
+    // Méthode pour trier les tickets par sévérité
+    private void sortBySeverity() {
+        Comparator<Ticket> severityComparator = Comparator.comparingInt(Ticket::getSeverity);
+        FXCollections.sort(unassignedTickets, severityComparator);
+    }
+
+    // Méthode pour trier les tickets par statut
+    private void sortByStatus() {
+        Comparator<Ticket> statusComparator = Comparator.comparingInt(Ticket::getStatus);
+        FXCollections.sort(unassignedTickets, statusComparator);
+    }
+
+    // Méthode pour annuler le tri
+    private void clearSort() {
+        // Recharger les tickets non triés
+        Comparator<Ticket> statusComparator = Comparator.comparingInt(Ticket::getId);
+        FXCollections.sort(unassignedTickets, statusComparator);
+    }
+
+    private ObservableList<Ticket> getTickets() {
+        try {
+            HttpResponse<String> response = ApiRequester.getRequest("ticket");
+            List<Ticket> ticketList = parseTicketList(response.body());
+            return FXCollections.observableArrayList(ticketList);
+        } catch (ApiRequestException e) {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Erreur");
+                alert.setHeaderText(null);
+                alert.setContentText("Erreur lors de la récupération des tickets");
+                alert.showAndWait();
+            });
+        }
+        return FXCollections.observableArrayList(); // Retourne une liste vide au lieu de null
+    }
+
+    private List<Ticket> parseTicketList(String json) {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.registerTypeAdapter(Ticket.class, new TicketTypeAdapter());
+        Gson gson = gsonBuilder.create();
+
+        // Désérialise l'objet JSON en utilisant un objet Wrapper
+        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+        JsonArray jsonArray = jsonObject.getAsJsonArray("tickets");
+
+        // Convertit chaque élément du tableau en un objet Ticket
+        List<Ticket> ticketList = new ArrayList<>();
+        for (JsonElement jsonElement : jsonArray) {
+            Ticket ticket = gson.fromJson(jsonElement, Ticket.class);
+            ticketList.add(ticket);
+        }
+
+        return ticketList;
+    }
+
+    private ObservableList<Support> getSupportList() {
+        try {
+            HttpResponse<String> response = ApiRequester.getRequest("user/support");
+            List<Support> supportList = parseSupportList(response.body());
+            return FXCollections.observableArrayList(supportList);
+        } catch (ApiRequestException e) {
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Erreur");
+                alert.setHeaderText(null);
+                alert.setContentText("Erreur lors de la récupération des supports");
+                alert.showAndWait();
+            });
+        }
+        return FXCollections.observableArrayList(); // Retourne une liste vide au lieu de null
+    }
+
+    private List<Support> parseSupportList(String json) {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        // Enregistre l'adaptateur pour la classe Support
+        gsonBuilder.registerTypeAdapter(Support.class, new SupportTypeAdapter());
+        Gson gson = gsonBuilder.create();
+
+        // Désérialise l'objet JSON en utilisant un objet Wrapper
+        JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
+        JsonArray jsonArray = jsonObject.getAsJsonArray("supports");
+
+        // Convertit chaque élément du tableau en un objet Support
+        Type listType = new TypeToken<List<Support>>(){}.getType();
+        List<Support> supportList = gson.fromJson(jsonArray, listType);
+
+        return supportList;
     }
 }
