@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 public class Ticket {
     @SerializedName("id")
     private int id;
-    @SerializedName("id")
+    @SerializedName("title")
     private String title;
     @SerializedName("description")
     private String description;
@@ -21,13 +21,13 @@ public class Ticket {
     private LocalDateTime createdAt;
     @SerializedName("updatedAt")
     private LocalDateTime updatedAt;
-    @SerializedName("problemId")
-    private int problemId;
+    @SerializedName("problem")
+    private String problem;
     @SerializedName("support")
     private Support support;
 
 
-    public Ticket(int id, String title, String description, int status, int severity, boolean archive, LocalDateTime createdAt, LocalDateTime updatedAt, int problemId) {
+    public Ticket(int id, String title, String description, int status, int severity, boolean archive, LocalDateTime createdAt, LocalDateTime updatedAt, String problem) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -36,7 +36,7 @@ public class Ticket {
         this.archive = archive;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-        this.problemId = problemId;
+        this.problem = problem;
     }
 
     public Ticket() {}
@@ -97,12 +97,12 @@ public class Ticket {
         this.updatedAt = updatedAt;
     }
 
-    public int getProblemId() {
-        return problemId;
+    public String getProblem() {
+        return problem;
     }
 
-    public void setProblemId(int problemId) {
-        this.problemId = problemId;
+    public void setProblem(String problem) {
+        this.problem = problem;
     }
 
     // Getters et setters

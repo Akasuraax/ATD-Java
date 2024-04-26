@@ -1,21 +1,14 @@
 package com.example.atd.application;
-
 import com.example.atd.ApiRequester;
 import com.example.atd.exception.ApiRequestException;
 import com.example.atd.model.Support;
 import com.example.atd.model.Ticket;
-import com.example.atd.model.User;
-import com.example.atd.model.UserDetails;
-import com.google.gson.Gson;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.scene.control.*;
-
 import javafx.util.Callback;
-
 import java.net.http.HttpResponse;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class TicketCell extends ListCell<Ticket> {
@@ -52,7 +45,7 @@ public class TicketCell extends ListCell<Ticket> {
                 ticket.setSeverity(selectedSeverity);
                 setText(ticket.getTitle() + " (ID: " + ticket.getId() + ") - Statut: " + ticket.getStatus());
                 updateSeverityStyle(ticket.getSeverity());
-                //updateTicket(ticket);
+                updateTicket(ticket);
 
             }
         });
@@ -67,7 +60,7 @@ public class TicketCell extends ListCell<Ticket> {
             if (selectedStatus != null) {
                 ticket.setStatus(selectedStatus);
                 setText(ticket.getTitle() + " (ID: " + ticket.getId() + ") - Statut: " + ticket.getStatus());
-                //updateTicket(ticket);
+                updateTicket(ticket);
             }
         });
 
@@ -76,6 +69,7 @@ public class TicketCell extends ListCell<Ticket> {
             MenuItem supportMenuItem = new MenuItem(support.getName() + " " + support.getForname());
             supportMenuItem.setOnAction(event -> {
                 ticket.setSupport(support); // Attribuer le support sélectionné au ticket
+                updateSupportTicket(ticket.getId(), support);
                 setText(ticket.getTitle() + " (ID: " + ticket.getId() + ") - Statut: " + ticket.getStatus());
             });
             supportMenu.getItems().add(supportMenuItem);
@@ -120,12 +114,11 @@ public class TicketCell extends ListCell<Ticket> {
         try {
             Map<String, String> headers = new HashMap<>();
             headers.put("Accept", "application/json");
-
-            String url = "logIn";
+            String url = "ticket/assign/" + id;
 
             Map<String, String> data = new HashMap<>();
-
-            HttpResponse<String> response = ApiRequester.postRequest(url, data);
+            data.put("id", String.valueOf(support.getId()));
+            HttpResponse<String> response = ApiRequester.patchRequest(url, data);
         } catch (
                 ApiRequestException e) {
             // Afficher un message d'erreur à l'utilisateur
@@ -145,16 +138,11 @@ public class TicketCell extends ListCell<Ticket> {
             try {
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Accept", "application/json");
-
                 String url = "ticket/" + ticket.getId();
-
-                Map<String, String> data = new HashMap<>();
-                Gson gson = new Gson();
-                String ticketJson = gson.toJson(ticket);
-                data.put("ticket", ticketJson);
+                Map<String, String> data = getStringStringMap(ticket);
 
                 HttpResponse<String> response = ApiRequester.patchRequest(url, data);
-                System.out.println(response);
+                System.out.println(response.body());
             } catch (
                     ApiRequestException e) {
                 // Afficher un message d'erreur à l'utilisateur
@@ -169,4 +157,19 @@ public class TicketCell extends ListCell<Ticket> {
                 });
             }
         }
+
+    private static Map<String, String> getStringStringMap(Ticket ticket) {
+        Map<String, String> data = new HashMap<>();
+
+        data.put("id", String.valueOf(ticket.getId()));
+        data.put("title", ticket.getTitle());
+        data.put("description", ticket.getDescription());
+        data.put("status", String.valueOf(ticket.getStatus()));
+        data.put("severity", String.valueOf(ticket.getSeverity()));
+        data.put("archive", String.valueOf(ticket.isArchive()));
+        data.put("createdAt", ticket.getCreatedAt().toString());
+        data.put("updatedAt", ticket.getUpdatedAt().toString());
+        data.put("problem", ticket.getProblem());
+        return data;
+    }
 }

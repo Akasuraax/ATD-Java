@@ -16,7 +16,17 @@ public class TicketTypeAdapter extends TypeAdapter<Ticket> {
 
     @Override
     public void write(JsonWriter out, Ticket value) throws IOException {
-        // Implémentez la sérialisation ici si nécessaire
+        out.beginObject();
+        out.name("id").value(value.getId());
+        out.name("title").value(value.getTitle());
+        out.name("description").value(value.getDescription());
+        out.name("status").value(value.getStatus());
+        out.name("severity").value(value.getSeverity());
+        out.name("archive").value(value.isArchive());
+        out.name("created_at").value(value.getCreatedAt().format(DATE_TIME_FORMATTER));
+        out.name("updated_at").value(value.getUpdatedAt().format(DATE_TIME_FORMATTER));
+        out.name("problem").value(value.getProblem());
+        out.endObject();
     }
 
     @Override
@@ -52,8 +62,8 @@ public class TicketTypeAdapter extends TypeAdapter<Ticket> {
                     String dateTimeStringU = in.nextString();
                     ticket.setUpdatedAt(LocalDateTime.parse(dateTimeStringU, DATE_TIME_FORMATTER));
                     break;
-                case "problem_id":
-                    ticket.setProblemId(in.nextInt());
+                case "problem":
+                    ticket.setProblem(in.nextString());
                     break;
                 default:
                     in.skipValue(); // Ignorez les champs supplémentaires
