@@ -1,6 +1,7 @@
 package com.example.atd;
 
 import com.example.atd.adapter.UserDetailsTypeAdapter;
+import com.example.atd.application.SupportTicket;
 import com.example.atd.application.TicketManager;
 import com.example.atd.exception.ApiRequestException;
 import com.example.atd.model.User;
@@ -61,15 +62,44 @@ public class LoginController {
                 String token = JsonParser.parseString(body).getAsJsonObject().get("token").getAsString();
                 SessionManager.getInstance().setUserToken(token);
 
-                UserDetails userDetails = gson.fromJson(userElement, UserDetails.class);
+                JsonObject userObject = userElement.getAsJsonObject();
+                JsonArray rolesArray = userObject.getAsJsonArray("roles");
+                int roleId = -1;
+                for (JsonElement roleElement : rolesArray) {
+                    JsonObject roleObject = roleElement.getAsJsonObject();
+                    // Récupérer l'ID du rôle
+                    roleId = roleObject.get("id").getAsInt();
+                }
 
-                User user = new User(token, userDetails);
-                SessionManager.getInstance().setUser(user);
-                SessionManager.getInstance().setUserToken(token);
+                if(roleId != 5 && roleId != 6) {
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Erreur");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Vous n'avez pas le droit d'acceder a l'application");
+                        alert.showAndWait();
+                    });
+                } else {
 
-                Platform.runLater(() -> {
-                    new TicketManager(mainStage);
-                });
+                    UserDetails userDetails = gson.fromJson(userElement, UserDetails.class);
+
+                    User user = new User(token, userDetails);
+                    SessionManager.getInstance().setUser(user);
+                    SessionManager.getInstance().setUserToken(token);
+
+
+                    if(roleId == 6 ) {
+                        System.out.println(6);
+                        Platform.runLater(() -> {
+                            new TicketManager(mainStage);
+                        });
+                    } else {
+                        System.out.println(5);
+                        Platform.runLater(() -> {
+                            new SupportTicket().start(mainStage);
+                        });
+                    }
+                }
             } else {
                 Platform.runLater(() -> {
                     Alert alert = new Alert(Alert.AlertType.ERROR);

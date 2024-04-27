@@ -1,8 +1,11 @@
 package com.example.atd.adapter;
 
+import com.example.atd.model.Support;
 import com.example.atd.model.Ticket;
+import com.example.atd.model.User; // Assurez-vous d'importer la classe User appropriée
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
@@ -26,6 +29,11 @@ public class TicketTypeAdapter extends TypeAdapter<Ticket> {
         out.name("created_at").value(value.getCreatedAt().format(DATE_TIME_FORMATTER));
         out.name("updated_at").value(value.getUpdatedAt().format(DATE_TIME_FORMATTER));
         out.name("problem").value(value.getProblem());
+        // Ajouter le support
+        out.name("support");
+        // Supposons que vous ayez un TypeAdapter pour User
+        SupportTypeAdapter userTypeAdapter = new SupportTypeAdapter();
+        userTypeAdapter.write(out, value.getSupport());
         out.endObject();
     }
 
@@ -64,6 +72,16 @@ public class TicketTypeAdapter extends TypeAdapter<Ticket> {
                     break;
                 case "problem":
                     ticket.setProblem(in.nextString());
+                    break;
+                case "support":
+                    if (in.peek() == JsonToken.NULL) {
+                        in.nextNull(); // Consommez le token null
+                        ticket.setSupport(null); // Définissez le support à null
+                    } else {
+                        SupportTypeAdapter userTypeAdapter = new SupportTypeAdapter();
+                        Support support = userTypeAdapter.read(in);
+                        ticket.setSupport(support); // Définissez le support avec la valeur lue
+                    }
                     break;
                 default:
                     in.skipValue(); // Ignorez les champs supplémentaires

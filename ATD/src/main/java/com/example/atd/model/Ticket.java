@@ -3,6 +3,8 @@ package com.example.atd.model;
 import com.google.gson.annotations.SerializedName;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Ticket {
     @SerializedName("id")
@@ -25,9 +27,12 @@ public class Ticket {
     private String problem;
     @SerializedName("support")
     private Support support;
+    @SerializedName("support")
+    private List<Message> messages;
 
 
-    public Ticket(int id, String title, String description, int status, int severity, boolean archive, LocalDateTime createdAt, LocalDateTime updatedAt, String problem) {
+
+    public Ticket(int id, String title, String description, int status, int severity, boolean archive, LocalDateTime createdAt, LocalDateTime updatedAt, String problem, Support support) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -37,6 +42,8 @@ public class Ticket {
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.problem = problem;
+        this.support = support;
+        this.messages = new ArrayList<>();
     }
 
     public Ticket() {}
@@ -120,5 +127,13 @@ public class Ticket {
 
     public void setSupport(Support support) {
         this.support = support;
+    }
+
+    public List<Message> getMessages() {
+        return messages;
+    }
+
+    public void addMessage(Message message) {
+        this.messages.add(message);
     }
 }

@@ -24,6 +24,8 @@ import java.util.List;
 
 public class TicketManager {
 
+    private static final String UNASSIGNED_TICKETS_ENDPOINT = "ticket/notassigned";
+    private static final String ASSIGNED_TICKETS_ENDPOINT = "ticket/assigned";
     private ObservableList<Ticket> unassignedTickets = FXCollections.observableArrayList();
     private ObservableList<Ticket> assignedTickets = FXCollections.observableArrayList();
     private Stage primaryStage; // Déclaration de la variable primaryStage
@@ -39,8 +41,9 @@ public class TicketManager {
     }
 
     public void start() {
-        unassignedTickets = getTickets();
+        unassignedTickets = getTickets(UNASSIGNED_TICKETS_ENDPOINT);
         supportList = getSupportList();
+        assignedTickets =  getTickets(ASSIGNED_TICKETS_ENDPOINT);
 
         Button sortBySeverityButton = new Button("Trier par sévérité");
         sortBySeverityButton.setOnAction(event -> sortBySeverity());
@@ -52,15 +55,19 @@ public class TicketManager {
         clearSortButton.setOnAction(event -> clearSort());
 
         Button reloadButton = new Button("Reload");
-        reloadButton.setOnAction(event -> unassignedTickets.setAll(getTickets()));
+        reloadButton.setOnAction(event -> {
+            unassignedTickets.setAll(getTickets(UNASSIGNED_TICKETS_ENDPOINT));
+            assignedTickets.setAll( getTickets(ASSIGNED_TICKETS_ENDPOINT)); // Recharge les tickets assignés
+        });
+
 
         ListView<Ticket> unassignedListView = new ListView<>();
         unassignedListView.setItems(unassignedTickets);
-        unassignedListView.setCellFactory(TicketCell.forListView(supportList));
+        unassignedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets));
 
         ListView<Ticket> assignedListView = new ListView<>();
         assignedListView.setItems(assignedTickets);
-        assignedListView.setCellFactory(TicketCell.forListView(supportList));
+        assignedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets));
 
         // Création des Labels pour les titres
         Label unassignedTicketsTitle = new Label("Tickets Non Assignés");
@@ -73,47 +80,50 @@ public class TicketManager {
         VBox unassignedTicketsLayout = new VBox(unassignedTicketsTitle, unassignedListView, sortingButtons);
         unassignedTicketsLayout.setPrefSize(400, 700);
 
-        HBox root = new HBox(unassignedTicketsLayout, assignedTicketsTitle, assignedListView);
+        // Créer une VBox pour contenir la liste des tickets assignés
+        VBox assignedTicketsLayout = new VBox(assignedTicketsTitle, assignedListView);
+        assignedTicketsLayout.setPrefSize(400, 700);
+
+        // Créer un HBox pour contenir les deux VBox (unassigned et assigned)
+        HBox root = new HBox(unassignedTicketsLayout, assignedTicketsLayout);
         Scene scene = new Scene(root, 800, 600);
 
         primaryStage.setTitle("Gestion des Tickets");
         primaryStage.setScene(scene);
         primaryStage.show();
-
     }
 
     // Méthode pour trier les tickets par sévérité
     private void sortBySeverity() {
-        Comparator<Ticket> severityComparator = Comparator.comparingInt(Ticket::getSeverity);
+        Comparator<Ticket> severityComparator = Comparator.comparingInt(Ticket::getSeverity).reversed();
         FXCollections.sort(unassignedTickets, severityComparator);
+        FXCollections.sort(assignedTickets, severityComparator); // Applique le tri sur les tickets assignés
     }
 
     // Méthode pour trier les tickets par statut
     private void sortByStatus() {
-        Comparator<Ticket> statusComparator = Comparator.comparingInt(Ticket::getStatus);
+        Comparator<Ticket> statusComparator = Comparator.comparingInt(Ticket::getStatus).reversed();
         FXCollections.sort(unassignedTickets, statusComparator);
+        FXCollections.sort(assignedTickets, statusComparator); // Applique le tri sur les tickets assignés
     }
 
     // Méthode pour annuler le tri
     private void clearSort() {
         // Recharger les tickets non triés
-        Comparator<Ticket> statusComparator = Comparator.comparingInt(Ticket::getId);
-        FXCollections.sort(unassignedTickets, statusComparator);
+        Comparator<Ticket> idComparator = Comparator.comparingInt(Ticket::getId);
+        FXCollections.sort(unassignedTickets, idComparator);
+        FXCollections.sort(assignedTickets, idComparator); // Réinitialise le tri sur les tickets assignés
     }
 
-    private ObservableList<Ticket> getTickets() {
+
+
+    public ObservableList<Ticket> getTickets(String endpoint) {
         try {
-            HttpResponse<String> response = ApiRequester.getRequest("ticket");
+            HttpResponse<String> response = ApiRequester.getRequest(endpoint);
             List<Ticket> ticketList = parseTicketList(response.body());
             return FXCollections.observableArrayList(ticketList);
         } catch (ApiRequestException e) {
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Erreur");
-                alert.setHeaderText(null);
-                alert.setContentText("Erreur lors de la récupération des tickets");
-                alert.showAndWait();
-            });
+            handleApiRequestException(e);
         }
         return FXCollections.observableArrayList(); // Retourne une liste vide au lieu de null
     }
@@ -143,13 +153,7 @@ public class TicketManager {
             List<Support> supportList = parseSupportList(response.body());
             return FXCollections.observableArrayList(supportList);
         } catch (ApiRequestException e) {
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Erreur");
-                alert.setHeaderText(null);
-                alert.setContentText("Erreur lors de la récupération des supports");
-                alert.showAndWait();
-            });
+            handleApiRequestException(e);
         }
         return FXCollections.observableArrayList(); // Retourne une liste vide au lieu de null
     }
@@ -170,4 +174,16 @@ public class TicketManager {
 
         return supportList;
     }
+
+
+    private void handleApiRequestException(ApiRequestException e) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Erreur");
+            alert.setHeaderText(null);
+            alert.setContentText("Erreur lors de la récupération des données");
+            alert.showAndWait();
+        });
+    }
+
 }

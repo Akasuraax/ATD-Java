@@ -14,10 +14,15 @@ import java.util.Map;
 public class TicketCell extends ListCell<Ticket> {
 
     private ObservableList<Support> supportList;
-
-    public TicketCell(ObservableList<Support> supportList) {
+    private ObservableList<Ticket> unassignedTickets;
+    private ObservableList<Ticket> assignedTickets;
+    public TicketCell(ObservableList<Support> supportList, ObservableList<Ticket> unassignedTickets, ObservableList<Ticket> assignedTickets) {
         this.supportList = supportList;
+        this.unassignedTickets = unassignedTickets;
+        this.assignedTickets = assignedTickets;
+
     }
+
     @Override
     protected void updateItem(Ticket item, boolean empty) {
         super.updateItem(item, empty);
@@ -25,15 +30,18 @@ public class TicketCell extends ListCell<Ticket> {
         if (empty || item == null) {
             setText(null);
         } else {
-            setText(item.getTitle() + " (ID: " + item.getId() + ") - Statut: " + item.getStatus());
+            // Utilisez le nom du support pour afficher dans la cellule
+            String supportName = item.getSupport() != null ? item.getSupport().getName() : "Non assigné";
+            setText(item.getTitle() + " (ID: " + item.getId() + ") - Statut: " + item.getStatus() + " - Support: " + supportName);
             setContextMenu(createContextMenu(item));
             updateSeverityStyle(item.getSeverity());
         }
     }
 
-    private ContextMenu createContextMenu(Ticket ticket) {
-        ContextMenu contextMenu = new ContextMenu();
 
+    private ContextMenu createContextMenu(Ticket ticket) {
+
+        ContextMenu contextMenu = new ContextMenu();
         // Créer une ComboBox pour modifier la gravité
         ComboBox<Integer> severityComboBox = new ComboBox<>();
         severityComboBox.getItems().addAll(0, 1, 2, 3, 4, 5);
@@ -106,9 +114,11 @@ public class TicketCell extends ListCell<Ticket> {
         }
     }
 
-    public static Callback<ListView<Ticket>, ListCell<Ticket>> forListView(ObservableList<Support> supportList) {
-        return param -> new TicketCell(supportList);
+    public static Callback<ListView<Ticket>, ListCell<Ticket>> forListView(ObservableList<Support> supportList, ObservableList<Ticket> unassignedTickets, ObservableList<Ticket> assignedTickets) {
+        return param -> new TicketCell(supportList, unassignedTickets, assignedTickets);
     }
+
+
 
     public void updateSupportTicket(int id, Support support) {
         try {
@@ -119,20 +129,14 @@ public class TicketCell extends ListCell<Ticket> {
             Map<String, String> data = new HashMap<>();
             data.put("id", String.valueOf(support.getId()));
             HttpResponse<String> response = ApiRequester.patchRequest(url, data);
-        } catch (
-                ApiRequestException e) {
-            // Afficher un message d'erreur à l'utilisateur
-            System.err.println("Erreur lors de la requête API : " + e.getMessage());
-            // Pour une application JavaFX, vous pouvez utiliser un dialogue pour afficher l'erreur
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Erreur de connexion");
-                alert.setHeaderText(null);
-                alert.setContentText(e.getMessage());
-                alert.showAndWait();
-            });
+
+            // Après avoir mis à jour le support du ticket, mettez à jour la liste de tickets
+            updateTicketLists(id, support);
+        } catch (ApiRequestException e) {
+            // Gestion des erreurs
         }
     }
+
 
         public void updateTicket (Ticket ticket){
             try {
@@ -157,6 +161,32 @@ public class TicketCell extends ListCell<Ticket> {
                 });
             }
         }
+
+    private void updateTicketLists(int ticketId, Support newSupport) {
+        // Trouver le ticket dans les listes de tickets assignés et non assignés
+        Ticket ticketToUpdate = null;
+        for (Ticket ticket : unassignedTickets) {
+            if (ticket.getId() == ticketId) {
+                ticketToUpdate = ticket;
+                break;
+            }
+        }
+        if (ticketToUpdate == null) {
+            for (Ticket ticket : assignedTickets) {
+                if (ticket.getId() == ticketId) {
+                    ticketToUpdate = ticket;
+                    break;
+                }
+            }
+        }
+
+        // Si le ticket a été trouvé, mettez à jour son support et supprimez-le de la liste appropriée
+        if (ticketToUpdate != null) {
+            ticketToUpdate.setSupport(newSupport);
+            unassignedTickets.remove(ticketToUpdate);
+            assignedTickets.add(ticketToUpdate);
+        }
+    }
 
     private static Map<String, String> getStringStringMap(Ticket ticket) {
         Map<String, String> data = new HashMap<>();
