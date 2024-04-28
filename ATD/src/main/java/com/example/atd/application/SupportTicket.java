@@ -1,6 +1,8 @@
 package com.example.atd.application;
-
+import com.example.atd.LoginController;
+import javafx.fxml.FXMLLoader;
 import com.example.atd.ApiRequester;
+import com.example.atd.Login;
 import com.example.atd.SessionManager;
 import com.example.atd.adapter.MessageTypeAdapter;
 import com.example.atd.adapter.TicketTypeAdapter;
@@ -14,6 +16,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -38,6 +41,7 @@ public class SupportTicket extends Application {
     private ScrollPane messageScrollPane; // Declare messageScrollPane as a class member
 
 
+
     @Override
     public void start(Stage primaryStage) {
         initializeComponents();
@@ -45,12 +49,33 @@ public class SupportTicket extends Application {
         configureTicketListView();
         configureMessageInputFieldAndButton();
 
-
-
         BorderPane root = new BorderPane();
         root.setLeft(ticketListView);
         root.setCenter(splitPane);
         root.setRight(ticketDetailsLabel);
+
+        // Créer le MenuBar et le MenuItem pour le bouton de déconnexion
+        MenuBar menuBar = new MenuBar();
+        Menu menu = new Menu("Fichier");
+        MenuItem logoutMenuItem = new MenuItem("Déconnexion");
+        menu.getItems().add(logoutMenuItem);
+        menuBar.getMenus().add(menu);
+
+        // Dans votre gestionnaire d'événements pour le bouton de déconnexion ou une autre action
+        logoutMenuItem.setOnAction(event -> {
+            // Fermez la scène principale ou changez la scène pour la page de connexion
+            primaryStage.close();
+            // Ouvrez la scène de connexion ici
+            try {
+                Login.changeToLoginScene();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        // Ajouter le MenuBar à la scène
+        VBox topContainer = new VBox(menuBar);
+        root.setTop(topContainer);
 
         Scene scene = new Scene(root, 800, 600);
         primaryStage.setTitle("Gestion des Tickets");
@@ -112,8 +137,10 @@ public class SupportTicket extends Application {
                 ticketDetailsLabel.setText(ticketDetails);
 
                 Platform.runLater(() -> {
-                    ObservableList<Message> ticketMessages = getMessages(newSelection.getId());
+                    // Effacer les messages actuels avant d'ajouter les nouveaux
+                    messageContainer.getChildren().clear();
 
+                    ObservableList<Message> ticketMessages = getMessages(newSelection.getId());
                     if (!ticketMessages.isEmpty()) {
                         // Ajoutez chaque message à messageContainer
                         for (Message message : ticketMessages) {
@@ -121,14 +148,12 @@ public class SupportTicket extends Application {
                             String messageText = message.getDescription(); // Assurez-vous que Message a une méthode getContent()
                             addMessageToContainer(messageText, message.getIdUser(),"#101010");
                         }
-                    } else {
                     }
                 });
-
-
             }
         });
     }
+
     private void configureMessageInputFieldAndButton() {
         sendMessageButton.setOnAction(event -> {
             String messageContent = messageInputField.getText();

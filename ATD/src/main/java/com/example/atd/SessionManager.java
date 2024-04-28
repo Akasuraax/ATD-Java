@@ -31,4 +31,12 @@ public class SessionManager {
     public String getUserToken() {
         return userToken;
     }
+
+    public void logout() {
+        instance = null;
+        // Et une autre pour stocker le token d'authentification
+        userToken = null;
+        user = null;
+        // Vous pouvez également effacer d'autres informations de session ici
+    }
 }
