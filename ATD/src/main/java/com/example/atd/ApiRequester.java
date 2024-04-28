@@ -13,6 +13,7 @@ public class ApiRequester {
 
     private static final String BASE_URL = "http://127.0.0.1:8000/api/";
 
+
     public static HttpResponse<String> postRequest(String url, Map<String, String> requestBody) throws ApiRequestException {
         // Créer un client HTTP
         HttpClient client = HttpClient.newHttpClient();
@@ -22,11 +23,20 @@ public class ApiRequester {
         String json = gson.toJson(requestBody);
 
         // Créer une requête POST avec le corps JSON
-        HttpRequest request = HttpRequest.newBuilder()
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(BASE_URL + url))
-                .header("Content-Type", "application/json")
+                .header("Content-Type", "application/json");
+
+        // Vérifier si l'utilisateur a un token et l'ajouter à l'en-tête si nécessaire
+        String userToken = SessionManager.getInstance().getUserToken();
+        if (userToken != null && !userToken.isEmpty()) {
+            requestBuilder.header("Authorization", userToken);
+        }
+
+        HttpRequest request = requestBuilder
                 .POST(HttpRequest.BodyPublishers.ofString(json))
                 .build();
+
         try {
             return client.send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -36,7 +46,6 @@ public class ApiRequester {
             throw new ApiRequestException("Erreur inattendue : " + e.getMessage());
         }
     }
-
     public static HttpResponse<String> patchRequest(String url, Map<String, String> requestBody) throws ApiRequestException {
         // Créer un client HTTP
         HttpClient client = HttpClient.newHttpClient();

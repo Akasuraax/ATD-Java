@@ -132,7 +132,7 @@ public class TicketManager {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(Ticket.class, new TicketTypeAdapter());
         Gson gson = gsonBuilder.create();
-
+        System.out.println(json);
         // Désérialise l'objet JSON en utilisant un objet Wrapper
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         JsonArray jsonArray = jsonObject.getAsJsonArray("tickets");
