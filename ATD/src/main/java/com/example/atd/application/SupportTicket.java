@@ -1,7 +1,5 @@
 package com.example.atd.application;
-import com.example.atd.LoginController;
 import com.example.atd.model.UserDetails;
-import javafx.fxml.FXMLLoader;
 import com.example.atd.ApiRequester;
 import com.example.atd.Login;
 import com.example.atd.SessionManager;
@@ -17,12 +15,10 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -96,7 +92,12 @@ public class SupportTicket extends Application {
         messageScrollPane.setContent(messageContainer);
         messageScrollPane.setFitToWidth(true);
         messageScrollPane.setFitToHeight(true);
+
+        // Initialiser les éléments comme désactivés
+        messageInputField.setDisable(true);
+        sendMessageButton.setDisable(true);
     }
+
 
     private void configureSplitPane() {
         splitPane = new SplitPane();
@@ -118,9 +119,6 @@ public class SupportTicket extends Application {
         // Définissez les positions des diviseurs
         splitPane.setDividerPositions(1.0, 0.0);
     }
-
-
-
 
     private void configureTicketListView() {
         ticketListView.setItems(tickets);
@@ -152,20 +150,33 @@ public class SupportTicket extends Application {
                 // Définir le VBox comme le graphique de ticketDetailsLabel
                 ticketDetailsLabel.setGraphic(ticketDetailsContainer);
 
-                Platform.runLater(() -> {
-                    // Effacer les messages actuels avant d'ajouter les nouveaux
-                    messageContainer.getChildren().clear();
+                // Charger les messages pour le ticket sélectionné
+                loadMessagesForSelectedTicket(newSelection.getId());
 
-                    ObservableList<Message> ticketMessages = getMessages(newSelection.getId());
-                    if (!ticketMessages.isEmpty()) {
-                        // Ajoutez chaque message à messageContainer
-                        for (Message message : ticketMessages) {
-                            // Vous pouvez ajuster cette logique pour déterminer le style et le texte en fonction du type de message
-                            String messageText = message.getDescription(); // Assurez-vous que Message a une méthode getContent()
-                            addMessageToContainer(messageText, message.getIdUser(), message.getUserWhoSendTheMessage(), "#101010");
-                        }
-                    }
-                });
+                // Activer le champ d'entrée de message et le bouton d'envoi
+                messageInputField.setDisable(false);
+                sendMessageButton.setDisable(false);
+            } else {
+                // Désactiver le champ d'entrée de message et le bouton d'envoi
+                messageInputField.setDisable(true);
+                sendMessageButton.setDisable(true);
+            }
+        });
+    }
+
+    private void loadMessagesForSelectedTicket(int ticketId) {
+        Platform.runLater(() -> {
+            // Effacer les messages actuels avant d'ajouter les nouveaux
+            messageContainer.getChildren().clear();
+
+            ObservableList<Message> ticketMessages = getMessages(ticketId);
+            if (!ticketMessages.isEmpty()) {
+                // Ajoutez chaque message à messageContainer
+                for (Message message : ticketMessages) {
+                    // Vous pouvez ajuster cette logique pour déterminer le style et le texte en fonction du type de message
+                    String messageText = message.getDescription(); // Assurez-vous que Message a une méthode getContent()
+                    addMessageToContainer(messageText, message.getIdUser(), message.getUserWhoSendTheMessage(), "#101010");
+                }
             }
         });
     }
@@ -240,9 +251,6 @@ public class SupportTicket extends Application {
         // Ajoutez le VBox à messageContainer
         messageContainer.getChildren().add(messageBox);
     }
-
-
-
 
     public static void main(String[] args) {
         launch(args);
@@ -324,10 +332,15 @@ public class SupportTicket extends Application {
             Map<String, String> data = getStringStringMap(ticket);
 
             HttpResponse<String> response = ApiRequester.patchRequest(url, data);
-            System.out.println(response.body());
 
             // After successfully archiving the ticket, remove it from the list
             tickets.remove(ticket);
+
+            // Check if the archived ticket is the last selected ticket
+            if (ticket.getId() == selectedTicketId) {
+                // Clear the ticket details and the discussion
+                clearTicketDetailsAndDiscussion();
+            }
         } catch (ApiRequestException e) {
             // Afficher un message d'erreur à l'utilisateur
             System.err.println("Erreur lors de la requête API : " + e.getMessage());
@@ -340,6 +353,19 @@ public class SupportTicket extends Application {
                 alert.showAndWait();
             });
         }
+    }
+
+    private void clearTicketDetailsAndDiscussion() {
+        // Clear the ticket details
+        ticketDetailsLabel.setGraphic(null);
+        ticketDetailsLabel.setText(null);
+
+        // Clear the discussion
+        messageContainer.getChildren().clear();
+
+        // Disable the message input field and the send message button
+        messageInputField.setDisable(true);
+        sendMessageButton.setDisable(true);
     }
 
 
