@@ -1,6 +1,7 @@
 package com.example.atd.application;
 
 import com.example.atd.ApiRequester;
+import com.example.atd.Login;
 import com.example.atd.adapter.SupportTypeAdapter;
 import com.example.atd.adapter.TicketTypeAdapter;
 import com.example.atd.exception.ApiRequestException;
@@ -13,6 +14,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -31,6 +33,9 @@ public class TicketManager {
     private Stage primaryStage; // Déclaration de la variable primaryStage
     private ObservableList<Support> supportList;
 
+    private ObservableList<Ticket> completedTickets = FXCollections.observableArrayList();
+
+
     public TicketManager(Stage primaryStage) {
         this.primaryStage = primaryStage;
         // Assurez-vous que primaryStage n'est pas null avant de l'utiliser
@@ -43,7 +48,9 @@ public class TicketManager {
     public void start() {
         unassignedTickets = getTickets(UNASSIGNED_TICKETS_ENDPOINT);
         supportList = getSupportList();
-        assignedTickets =  getTickets(ASSIGNED_TICKETS_ENDPOINT);
+        assignedTickets = getTickets(ASSIGNED_TICKETS_ENDPOINT);
+
+        filterCompletedTickets();
 
         Button sortBySeverityButton = new Button("Trier par sévérité");
         sortBySeverityButton.setOnAction(event -> sortBySeverity());
@@ -60,7 +67,6 @@ public class TicketManager {
             assignedTickets.setAll( getTickets(ASSIGNED_TICKETS_ENDPOINT)); // Recharge les tickets assignés
         });
 
-
         ListView<Ticket> unassignedListView = new ListView<>();
         unassignedListView.setItems(unassignedTickets);
         unassignedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets));
@@ -69,29 +75,49 @@ public class TicketManager {
         assignedListView.setItems(assignedTickets);
         assignedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets));
 
-        // Création des Labels pour les titres
+        ListView<Ticket> completedListView = new ListView<>();
+        completedListView.setItems(completedTickets);
+        completedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets));
+
         Label unassignedTicketsTitle = new Label("Tickets Non Assignés");
         Label assignedTicketsTitle = new Label("Tickets Assignés");
+        Label completedTicketsTitle = new Label("Tickets Terminés");
 
-        // Créer une HBox pour contenir les boutons de tri
         HBox sortingButtons = new HBox(sortBySeverityButton, sortByStatusButton, clearSortButton, reloadButton);
 
-        // Créer une VBox pour contenir la liste des tickets non assignés et les boutons de tri
         VBox unassignedTicketsLayout = new VBox(unassignedTicketsTitle, unassignedListView, sortingButtons);
-        unassignedTicketsLayout.setPrefSize(400, 700);
 
-        // Créer une VBox pour contenir la liste des tickets assignés
         VBox assignedTicketsLayout = new VBox(assignedTicketsTitle, assignedListView);
-        assignedTicketsLayout.setPrefSize(400, 700);
 
-        // Créer un HBox pour contenir les deux VBox (unassigned et assigned)
-        HBox root = new HBox(unassignedTicketsLayout, assignedTicketsLayout);
-        Scene scene = new Scene(root, 800, 600);
+        VBox completedTicketsLayout = new VBox(completedTicketsTitle, completedListView);
+
+        MenuBar menuBar = new MenuBar();
+        Menu menu = new Menu("Fichier");
+        MenuItem logoutMenuItem = new MenuItem("Déconnexion");
+        menu.getItems().add(logoutMenuItem);
+        menuBar.getMenus().add(menu);
+
+        logoutMenuItem.setOnAction(event -> {
+            primaryStage.close();
+            try {
+                Login.changeToLoginScene();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        // Utiliser un BorderPane pour organiser les éléments
+        BorderPane root = new BorderPane();
+        root.setTop(menuBar); // Ajouter le MenuBar en haut
+        root.setCenter(new HBox(unassignedTicketsLayout, assignedTicketsLayout, completedTicketsLayout)); // Ajouter les VBox au centre
+
+        Scene scene = new Scene(root, 1800, 800);
 
         primaryStage.setTitle("Gestion des Tickets");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
+
 
     // Méthode pour trier les tickets par sévérité
     private void sortBySeverity() {
@@ -114,9 +140,6 @@ public class TicketManager {
         FXCollections.sort(unassignedTickets, idComparator);
         FXCollections.sort(assignedTickets, idComparator); // Réinitialise le tri sur les tickets assignés
     }
-
-
-
     public ObservableList<Ticket> getTickets(String endpoint) {
         try {
             HttpResponse<String> response = ApiRequester.getRequest(endpoint);
@@ -184,6 +207,15 @@ public class TicketManager {
             alert.setContentText("Erreur lors de la récupération des données");
             alert.showAndWait();
         });
+    }
+
+    private void filterCompletedTickets() {
+        // Filter unassigned tickets
+        assignedTickets.stream()
+                .filter(ticket -> ticket.getStatus() == 2)
+                .forEach(completedTickets::add);
+        // Filter assigned tickets and remove completed ones
+        assignedTickets.removeIf(ticket -> ticket.getStatus() == 2);
     }
 
 }

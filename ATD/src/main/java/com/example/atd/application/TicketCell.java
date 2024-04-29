@@ -30,14 +30,24 @@ public class TicketCell extends ListCell<Ticket> {
         if (empty || item == null) {
             setText(null);
         } else {
-            // Utilisez le nom du support pour afficher dans la cellule
-            String supportName = item.getSupport() != null ? item.getSupport().getName() : "Non assigné";
-            setText(item.getTitle() + " (ID: " + item.getId() + ") - Statut: " + item.getStatus() + " - Support: " + supportName);
+            updateTicketText(item);
             setContextMenu(createContextMenu(item));
             updateSeverityStyle(item.getSeverity());
         }
     }
 
+    private String getStatusDisplay(int status) {
+        switch (status) {
+            case 0:
+                return "En attente";
+            case 1:
+                return "En cours";
+            case 2:
+                return "Terminé";
+            default:
+                return "Statut inconnu";
+        }
+    }
 
     private ContextMenu createContextMenu(Ticket ticket) {
 
@@ -51,7 +61,7 @@ public class TicketCell extends ListCell<Ticket> {
             Integer selectedSeverity = severityComboBox.getSelectionModel().getSelectedItem();
             if (selectedSeverity != null) {
                 ticket.setSeverity(selectedSeverity);
-                setText(ticket.getTitle() + " (ID: " + ticket.getId() + ") - Statut: " + ticket.getStatus());
+                updateTicketText(ticket);
                 updateSeverityStyle(ticket.getSeverity());
                 updateTicket(ticket);
 
@@ -59,15 +69,16 @@ public class TicketCell extends ListCell<Ticket> {
         });
 
         // Créer une ComboBox pour modifier le statut
-        ComboBox<Integer> statusComboBox = new ComboBox<>();
-        statusComboBox.getItems().addAll(0, 1, 2, 3);
-        statusComboBox.setValue(ticket.getStatus()); // Définir la valeur initiale de la ComboBox
+        ComboBox<String> statusComboBox = new ComboBox<>();
+        statusComboBox.getItems().addAll("En attente", "En cours", "Terminé");
+        statusComboBox.setValue(getStatusDisplay(ticket.getStatus()));
         MenuItem menuItem2 = new MenuItem("Modifier le statut", statusComboBox);
         menuItem2.setOnAction(event -> {
-            Integer selectedStatus = statusComboBox.getSelectionModel().getSelectedItem();
+            String selectedStatus = statusComboBox.getSelectionModel().getSelectedItem();
             if (selectedStatus != null) {
-                ticket.setStatus(selectedStatus);
-                setText(ticket.getTitle() + " (ID: " + ticket.getId() + ") - Statut: " + ticket.getStatus());
+                int statusValue = getStatusValue(selectedStatus);
+                ticket.setStatus(statusValue);
+                updateTicketText(ticket);
                 updateTicket(ticket);
             }
         });
@@ -78,7 +89,7 @@ public class TicketCell extends ListCell<Ticket> {
             supportMenuItem.setOnAction(event -> {
                 ticket.setSupport(support); // Attribuer le support sélectionné au ticket
                 updateSupportTicket(ticket.getId(), support);
-                setText(ticket.getTitle() + " (ID: " + ticket.getId() + ") - Statut: " + ticket.getStatus());
+                updateTicketText(ticket);
             });
             supportMenu.getItems().add(supportMenuItem);
         }
@@ -88,13 +99,26 @@ public class TicketCell extends ListCell<Ticket> {
         return contextMenu;
     }
 
+    private int getStatusValue(String statusDisplay) {
+        switch (statusDisplay) {
+            case "En attente":
+                return 0;
+            case "En cours":
+                return 1;
+            case "Terminé":
+                return 2;
+            default:
+                return -1; // Valeur par défaut si le statut n'est pas reconnu
+        }
+    }
+
     private void updateSeverityStyle(int severity) {
         switch (severity) {
             case 0:
                 setStyle("-fx-text-fill: green;");
                 break;
             case 1:
-                setStyle("-fx-text-fill: yellow;");
+                setStyle("-fx-text-fill: #4c7500;");
                 break;
             case 2:
                 setStyle("-fx-text-fill: orange;");
@@ -132,37 +156,53 @@ public class TicketCell extends ListCell<Ticket> {
 
             // Après avoir mis à jour le support du ticket, mettez à jour la liste de tickets
             updateTicketLists(id, support);
+
+            Ticket updatedTicket = assignedTickets.stream()
+                    .filter(ticket -> ticket.getId() == id)
+                    .findFirst()
+                    .orElse(null);
+
+            if (updatedTicket != null) {
+                updateTicketText(updatedTicket);
+            }
         } catch (ApiRequestException e) {
             // Gestion des erreurs
+            System.err.println("Erreur lors de la requête API : " + e.getMessage());
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Erreur de connexion");
+                alert.setHeaderText(null);
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
+            });
         }
     }
 
+    public void updateTicket (Ticket ticket){
+        try {
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Accept", "application/json");
+            String url = "ticket/" + ticket.getId();
+            Map<String, String> data = getStringStringMap(ticket);
 
-        public void updateTicket (Ticket ticket){
-            try {
-                Map<String, String> headers = new HashMap<>();
-                headers.put("Accept", "application/json");
-                String url = "ticket/" + ticket.getId();
-                Map<String, String> data = getStringStringMap(ticket);
-
-                HttpResponse<String> response = ApiRequester.patchRequest(url, data);
-                System.out.println(response.body());
-            } catch (
-                    ApiRequestException e) {
-                // Afficher un message d'erreur à l'utilisateur
-                System.err.println("Erreur lors de la requête API : " + e.getMessage());
-                // Pour une application JavaFX, vous pouvez utiliser un dialogue pour afficher l'erreur
-                Platform.runLater(() -> {
-                    Alert alert = new Alert(Alert.AlertType.ERROR);
-                    alert.setTitle("Erreur de connexion");
-                    alert.setHeaderText(null);
-                    alert.setContentText(e.getMessage());
-                    alert.showAndWait();
-                });
-            }
+            HttpResponse<String> response = ApiRequester.patchRequest(url, data);
+            updateTicketText(ticket);
+        } catch (
+                ApiRequestException e) {
+            // Afficher un message d'erreur à l'utilisateur
+            System.err.println("Erreur lors de la requête API : " + e.getMessage());
+            // Pour une application JavaFX, vous pouvez utiliser un dialogue pour afficher l'erreur
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Erreur de connexion");
+                alert.setHeaderText(null);
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
+            });
         }
+    }
 
-    private void updateTicketLists(int ticketId, Support newSupport) {
+    public void updateTicketLists(int ticketId, Support newSupport) {
         // Trouver le ticket dans les listes de tickets assignés et non assignés
         Ticket ticketToUpdate = null;
         for (Ticket ticket : unassignedTickets) {
@@ -183,8 +223,15 @@ public class TicketCell extends ListCell<Ticket> {
         // Si le ticket a été trouvé, mettez à jour son support et supprimez-le de la liste appropriée
         if (ticketToUpdate != null) {
             ticketToUpdate.setSupport(newSupport);
-            unassignedTickets.remove(ticketToUpdate);
-            assignedTickets.add(ticketToUpdate);
+            // Si le ticket était dans la liste des tickets non assignés, le déplacer vers la liste des tickets assignés
+            if (unassignedTickets.contains(ticketToUpdate)) {
+                unassignedTickets.remove(ticketToUpdate);
+                assignedTickets.add(ticketToUpdate);
+            }
+            // Si le ticket était déjà dans la liste des tickets assignés, simplement mettre à jour le support
+            else if (assignedTickets.contains(ticketToUpdate)) {
+                // Pas besoin de faire quoi que ce soit ici, car le support a déjà été mis à jour
+            }
         }
     }
 
@@ -202,4 +249,11 @@ public class TicketCell extends ListCell<Ticket> {
         data.put("problem", ticket.getProblem());
         return data;
     }
+
+    private void updateTicketText(Ticket item) {
+        String supportName = item.getSupport() != null ? " - Support: " + item.getSupport().getName() + " " + item.getSupport().getForname() : "";
+        String statusDisplay = getStatusDisplay(item.getStatus());
+        setText(item.getTitle() + " (ID: " + item.getId() + ") - Statut: " + statusDisplay + supportName);
+    }
+
 }
