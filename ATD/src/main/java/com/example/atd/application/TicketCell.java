@@ -16,11 +16,13 @@ public class TicketCell extends ListCell<Ticket> {
     private ObservableList<Support> supportList;
     private ObservableList<Ticket> unassignedTickets;
     private ObservableList<Ticket> assignedTickets;
-    public TicketCell(ObservableList<Support> supportList, ObservableList<Ticket> unassignedTickets, ObservableList<Ticket> assignedTickets) {
+    private ObservableList<Ticket> completedTickets;
+
+    public TicketCell(ObservableList<Support> supportList, ObservableList<Ticket> unassignedTickets, ObservableList<Ticket> assignedTickets, ObservableList<Ticket> completedTickets) {
         this.supportList = supportList;
         this.unassignedTickets = unassignedTickets;
         this.assignedTickets = assignedTickets;
-
+        this.completedTickets = completedTickets;
     }
 
     @Override
@@ -68,21 +70,6 @@ public class TicketCell extends ListCell<Ticket> {
             }
         });
 
-        // Créer une ComboBox pour modifier le statut
-        ComboBox<String> statusComboBox = new ComboBox<>();
-        statusComboBox.getItems().addAll("En attente", "En cours", "Terminé");
-        statusComboBox.setValue(getStatusDisplay(ticket.getStatus()));
-        MenuItem menuItem2 = new MenuItem("Modifier le statut", statusComboBox);
-        menuItem2.setOnAction(event -> {
-            String selectedStatus = statusComboBox.getSelectionModel().getSelectedItem();
-            if (selectedStatus != null) {
-                int statusValue = getStatusValue(selectedStatus);
-                ticket.setStatus(statusValue);
-                updateTicketText(ticket);
-                updateTicket(ticket);
-            }
-        });
-
         Menu supportMenu = new Menu("Assigner à...");
         for (Support support : supportList) {
             MenuItem supportMenuItem = new MenuItem(support.getName() + " " + support.getForname());
@@ -94,7 +81,13 @@ public class TicketCell extends ListCell<Ticket> {
             supportMenu.getItems().add(supportMenuItem);
         }
 
-        contextMenu.getItems().addAll(menuItem1, menuItem2, supportMenu);
+        MenuItem detailsMenuItem = new MenuItem("Détails");
+        detailsMenuItem.setOnAction(event -> openTicketDetails(ticket));
+
+        MenuItem archiveMenuItem = new MenuItem("Archivé");
+        archiveMenuItem.setOnAction(event -> archiveTicket(ticket));
+
+        contextMenu.getItems().addAll(menuItem1, supportMenu, detailsMenuItem, archiveMenuItem);
 
         return contextMenu;
     }
@@ -138,8 +131,8 @@ public class TicketCell extends ListCell<Ticket> {
         }
     }
 
-    public static Callback<ListView<Ticket>, ListCell<Ticket>> forListView(ObservableList<Support> supportList, ObservableList<Ticket> unassignedTickets, ObservableList<Ticket> assignedTickets) {
-        return param -> new TicketCell(supportList, unassignedTickets, assignedTickets);
+    public static Callback<ListView<Ticket>, ListCell<Ticket>> forListView(ObservableList<Support> supportList, ObservableList<Ticket> unassignedTickets, ObservableList<Ticket> assignedTickets, ObservableList<Ticket> completedTickets) {
+        return param -> new TicketCell(supportList, unassignedTickets, assignedTickets, completedTickets);
     }
 
 
@@ -154,17 +147,18 @@ public class TicketCell extends ListCell<Ticket> {
             data.put("id", String.valueOf(support.getId()));
             HttpResponse<String> response = ApiRequester.patchRequest(url, data);
 
-            // Après avoir mis à jour le support du ticket, mettez à jour la liste de tickets
-            updateTicketLists(id, support);
-
+            // Après avoir mis à jour le support du ticket, mettez à jour le statut à 1 (en cours)
             Ticket updatedTicket = assignedTickets.stream()
                     .filter(ticket -> ticket.getId() == id)
                     .findFirst()
                     .orElse(null);
-
-            if (updatedTicket != null) {
+            if (updatedTicket!= null) {
                 updateTicketText(updatedTicket);
             }
+
+            // Après avoir mis à jour le support du ticket, mettez à jour la liste de tickets
+            updateTicketLists(id, support);
+
         } catch (ApiRequestException e) {
             // Gestion des erreurs
             System.err.println("Erreur lors de la requête API : " + e.getMessage());
@@ -177,6 +171,7 @@ public class TicketCell extends ListCell<Ticket> {
             });
         }
     }
+
 
     public void updateTicket (Ticket ticket){
         try {
@@ -223,6 +218,7 @@ public class TicketCell extends ListCell<Ticket> {
         // Si le ticket a été trouvé, mettez à jour son support et supprimez-le de la liste appropriée
         if (ticketToUpdate != null) {
             ticketToUpdate.setSupport(newSupport);
+            ticketToUpdate.setStatus(1);
             // Si le ticket était dans la liste des tickets non assignés, le déplacer vers la liste des tickets assignés
             if (unassignedTickets.contains(ticketToUpdate)) {
                 unassignedTickets.remove(ticketToUpdate);
@@ -254,6 +250,38 @@ public class TicketCell extends ListCell<Ticket> {
         String supportName = item.getSupport() != null ? " - Support: " + item.getSupport().getName() + " " + item.getSupport().getForname() : "";
         String statusDisplay = getStatusDisplay(item.getStatus());
         setText(item.getTitle() + " (ID: " + item.getId() + ") - Statut: " + statusDisplay + supportName);
+    }
+
+    private void openTicketDetails(Ticket ticket) {
+        // Création d'une nouvelle fenêtre pour les détails du ticket
+        TicketDetailsWindow detailsWindow = new TicketDetailsWindow(ticket);
+        detailsWindow.showAndWait(); // Ouverture de la fenêtre et attente de sa fermeture
+    }
+
+    private void archiveTicket(Ticket ticket) {
+        try {
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Accept", "application/json");
+            String url = "ticket/" + ticket.getId();
+
+            HttpResponse<String> response = ApiRequester.deleteRequest(url);
+            // Après avoir archivé le ticket, supprimez-le des listes de tickets
+            unassignedTickets.remove(ticket);
+            assignedTickets.remove(ticket);
+            completedTickets.remove(ticket); // Ajoutez cette ligne pour supprimer le ticket de la liste terminés
+
+        } catch (ApiRequestException e) {
+            // Afficher un message d'erreur à l'utilisateur
+            System.err.println("Erreur lors de la requête API : " + e.getMessage());
+            // Pour une application JavaFX, vous pouvez utiliser un dialogue pour afficher l'erreur
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Erreur de connexion");
+                alert.setHeaderText(null);
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
+            });
+        }
     }
 
 }

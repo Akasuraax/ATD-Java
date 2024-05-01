@@ -55,41 +55,45 @@ public class TicketManager {
         Button sortBySeverityButton = new Button("Trier par sévérité");
         sortBySeverityButton.setOnAction(event -> sortBySeverity());
 
-        Button sortByStatusButton = new Button("Trier par statut");
-        sortByStatusButton.setOnAction(event -> sortByStatus());
-
         Button clearSortButton = new Button("Annuler le tri");
         clearSortButton.setOnAction(event -> clearSort());
 
-        Button reloadButton = new Button("Reload");
-        reloadButton.setOnAction(event -> {
-            unassignedTickets.setAll(getTickets(UNASSIGNED_TICKETS_ENDPOINT));
-            assignedTickets.setAll( getTickets(ASSIGNED_TICKETS_ENDPOINT)); // Recharge les tickets assignés
-        });
-
         ListView<Ticket> unassignedListView = new ListView<>();
         unassignedListView.setItems(unassignedTickets);
-        unassignedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets));
+        unassignedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets, completedTickets));
 
         ListView<Ticket> assignedListView = new ListView<>();
         assignedListView.setItems(assignedTickets);
-        assignedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets));
+        assignedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets, completedTickets));
 
         ListView<Ticket> completedListView = new ListView<>();
         completedListView.setItems(completedTickets);
-        completedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets));
+        completedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets, completedTickets));
 
         Label unassignedTicketsTitle = new Label("Tickets Non Assignés");
         Label assignedTicketsTitle = new Label("Tickets Assignés");
         Label completedTicketsTitle = new Label("Tickets Terminés");
 
-        HBox sortingButtons = new HBox(sortBySeverityButton, sortByStatusButton, clearSortButton, reloadButton);
+        HBox sortingButtons = new HBox(sortBySeverityButton, clearSortButton);
 
         VBox unassignedTicketsLayout = new VBox(unassignedTicketsTitle, unassignedListView, sortingButtons);
 
         VBox assignedTicketsLayout = new VBox(assignedTicketsTitle, assignedListView);
 
         VBox completedTicketsLayout = new VBox(completedTicketsTitle, completedListView);
+
+
+        // Définir la taille préférée pour la ListView des tickets non assignés
+        unassignedListView.setPrefHeight(700); // Hauteur préférée
+        unassignedListView.setPrefWidth(500); // Largeur préférée
+
+        // Définir la taille préférée pour la ListView des tickets assignés
+        assignedListView.setPrefHeight(700); // Hauteur préférée
+        assignedListView.setPrefWidth(500); // Largeur préférée
+
+        // Définir la taille préférée pour la ListView des tickets terminés
+        completedListView.setPrefHeight(700); // Hauteur préférée
+        completedListView.setPrefWidth(500); // Largeur préférée
 
         MenuBar menuBar = new MenuBar();
         Menu menu = new Menu("Fichier");
@@ -111,7 +115,7 @@ public class TicketManager {
         root.setTop(menuBar); // Ajouter le MenuBar en haut
         root.setCenter(new HBox(unassignedTicketsLayout, assignedTicketsLayout, completedTicketsLayout)); // Ajouter les VBox au centre
 
-        Scene scene = new Scene(root, 1800, 800);
+        Scene scene = new Scene(root, 1500, 800);
 
         primaryStage.setTitle("Gestion des Tickets");
         primaryStage.setScene(scene);
@@ -126,12 +130,6 @@ public class TicketManager {
         FXCollections.sort(assignedTickets, severityComparator); // Applique le tri sur les tickets assignés
     }
 
-    // Méthode pour trier les tickets par statut
-    private void sortByStatus() {
-        Comparator<Ticket> statusComparator = Comparator.comparingInt(Ticket::getStatus).reversed();
-        FXCollections.sort(unassignedTickets, statusComparator);
-        FXCollections.sort(assignedTickets, statusComparator); // Applique le tri sur les tickets assignés
-    }
 
     // Méthode pour annuler le tri
     private void clearSort() {
@@ -155,7 +153,6 @@ public class TicketManager {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.registerTypeAdapter(Ticket.class, new TicketTypeAdapter());
         Gson gson = gsonBuilder.create();
-        System.out.println(json);
         // Désérialise l'objet JSON en utilisant un objet Wrapper
         JsonObject jsonObject = gson.fromJson(json, JsonObject.class);
         JsonArray jsonArray = jsonObject.getAsJsonArray("tickets");

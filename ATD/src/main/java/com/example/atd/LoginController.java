@@ -87,7 +87,6 @@ public class LoginController {
                     SessionManager.getInstance().setUser(user);
                     SessionManager.getInstance().setUserToken(token);
 
-
                     if(roleId == 6 ) {
                         System.out.println(6);
                         Platform.runLater(() -> {

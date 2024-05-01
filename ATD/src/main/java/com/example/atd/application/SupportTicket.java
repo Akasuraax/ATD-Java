@@ -18,6 +18,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public class SupportTicket extends Application {
         VBox topContainer = new VBox(menuBar);
         root.setTop(topContainer);
 
-        Scene scene = new Scene(root, 800, 600);
+        Scene scene = new Scene(root, 1000, 800);
         primaryStage.setTitle("Gestion des Tickets");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -97,7 +98,6 @@ public class SupportTicket extends Application {
         messageInputField.setDisable(true);
         sendMessageButton.setDisable(true);
     }
-
 
     private void configureSplitPane() {
         splitPane = new SplitPane();
@@ -130,7 +130,7 @@ public class SupportTicket extends Application {
         ticketDetailsLabel.setStyle("-fx-padding: 10px;");
 
         ticketListView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
+            if (newSelection!= null) {
                 selectedTicketId = newSelection.getId();
                 String ticketDetails = "Titre: " + newSelection.getTitle() + "\nDétails: " + newSelection.getDescription() + "\n";
 
@@ -138,9 +138,18 @@ public class SupportTicket extends Application {
                 VBox ticketDetailsContainer = new VBox();
                 ticketDetailsContainer.setSpacing(10); // Ajouter un espace entre le texte et le bouton
 
-                // Ajouter le texte des détails au VBox
-                Label detailsLabel = new Label(ticketDetails);
-                ticketDetailsContainer.getChildren().add(detailsLabel);
+                // Utiliser un Text pour le texte des détails et le définir comme défilable
+                Text detailsText = new Text(ticketDetails);
+                detailsText.setWrappingWidth(280); // Définit la largeur maximale avant le retour à la ligne
+                detailsText.setStyle("-fx-background-color: #f0f0f0;");
+
+                // Créer un ScrollPane pour le Text des détails
+                ScrollPane detailsScrollPane = new ScrollPane(detailsText);
+                detailsScrollPane.setFitToWidth(true); // Ajuster la largeur du ScrollPane à celle du Text
+                detailsScrollPane.setFitToHeight(true); // Ajuster la hauteur du ScrollPane à celle du Text
+                detailsScrollPane.setMaxWidth(300);
+                // Ajouter le ScrollPane au VBox
+                ticketDetailsContainer.getChildren().add(detailsScrollPane);
 
                 // Créer et ajouter le bouton d'archivage au VBox
                 Button archiveButton = new Button("Archiver");
@@ -163,6 +172,8 @@ public class SupportTicket extends Application {
             }
         });
     }
+
+
 
     private void loadMessagesForSelectedTicket(int ticketId) {
         Platform.runLater(() -> {
@@ -367,7 +378,6 @@ public class SupportTicket extends Application {
         messageInputField.setDisable(true);
         sendMessageButton.setDisable(true);
     }
-
 
     private static Map<String, String> getStringStringMap(Ticket ticket) {
         Map<String, String> data = new HashMap<>();
