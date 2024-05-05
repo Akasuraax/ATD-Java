@@ -31,7 +31,7 @@ public class ApiRequester {
             baseUrl = props.getProperty("API.url");
         } catch (IOException e) {
             e.printStackTrace();
-            baseUrl = "https://api.eautantdone.com/api/"; // URL de base par défaut
+            baseUrl = "http://api.eautantdone.com/api/"; // URL de base par défaut
         }
     }
 
