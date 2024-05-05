@@ -6,11 +6,15 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Properties;
 
 import com.example.atd.exception.ApiRequestException;
 import com.google.gson.Gson;
+
+import javax.net.ssl.SSLContext;
 
 public class ApiRequester {
 
@@ -27,19 +31,29 @@ public class ApiRequester {
             baseUrl = props.getProperty("API.url");
         } catch (IOException e) {
             e.printStackTrace();
-            baseUrl = "https://api.eautantdone.com/api"; // URL de base par défaut
+            baseUrl = "https://api.eautantdone.com/api/"; // URL de base par défaut
         }
     }
 
 
     public static HttpResponse<String> postRequest(String url, Map<String, String> requestBody) throws ApiRequestException {
+
+        // Créer un SSLContext sans vérification SSL
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, null, null);
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException("Erreur lors de la création du SSLContext", e);
+        }
+
         // Créer un client HTTP
         HttpClient client = HttpClient.newHttpClient();
 
         // Convertir le Map en JSON
         Gson gson = new Gson();
         String json = gson.toJson(requestBody);
-
+        System.out.println(baseUrl + url);
         // Créer une requête POST avec le corps JSON
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + url))
@@ -65,6 +79,16 @@ public class ApiRequester {
         }
     }
     public static HttpResponse<String> patchRequest(String url, Map<String, String> requestBody) throws ApiRequestException {
+
+        // Créer un SSLContext sans vérification SSL
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, null, null);
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException("Erreur lors de la création du SSLContext", e);
+        }
+
         // Créer un client HTTP
         HttpClient client = HttpClient.newHttpClient();
 
@@ -89,6 +113,16 @@ public class ApiRequester {
         }
     }
     public static HttpResponse<String> getRequest(String url) throws ApiRequestException {
+
+        // Créer un SSLContext sans vérification SSL
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, null, null);
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException("Erreur lors de la création du SSLContext", e);
+        }
+
         // Créer un client HTTP
         HttpClient client = HttpClient.newHttpClient();
 
@@ -107,8 +141,17 @@ public class ApiRequester {
             throw new ApiRequestException("Erreur inattendue : " + e.getMessage());
         }
     }
-
     public static HttpResponse<String> deleteRequest(String url) throws ApiRequestException {
+
+        // Créer un SSLContext sans vérification SSL
+        SSLContext sslContext = null;
+        try {
+            sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, null, null);
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException("Erreur lors de la création du SSLContext", e);
+        }
+
         // Créer un client HTTP
         HttpClient client = HttpClient.newHttpClient();
 
