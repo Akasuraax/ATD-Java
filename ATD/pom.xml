@@ -42,8 +42,6 @@
       <version>${junit.version}</version>
       <scope>test</scope>
     </dependency>
-    <!-- Ajout de la dépendance Gson -->
-
   </dependencies>
 
   <build>
