@@ -7,6 +7,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Properties;
@@ -15,6 +16,7 @@ import com.example.atd.exception.ApiRequestException;
 import com.google.gson.Gson;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 public class ApiRequester {
 
@@ -35,20 +37,38 @@ public class ApiRequester {
         }
     }
 
+    public static SSLContext createSSLContext(String keystorePath, String keystorePassword) throws Exception {
+        KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+        FileInputStream fis = new FileInputStream(keystorePath);
+        ks.load(fis, keystorePassword.toCharArray());
+        fis.close();
+
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init(ks);
+
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, tmf.getTrustManagers(), null);
+
+        return sslContext;
+    }
+
+
 
     public static HttpResponse<String> postRequest(String url, Map<String, String> requestBody) throws ApiRequestException {
-
-        // Créer un SSLContext sans vérification SSL
+        // Utiliser le SSLContext personnalisé
         SSLContext sslContext = null;
         try {
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, null, null);
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException("Erreur lors de la création du SSLContext", e);
+            sslContext = createSSLContext("E:\\Dev\\Projets\\PA\\ATD-Java\\mykeystore.jks", "eautantdone");
+        } catch (Exception e) {
+            // Gérer l'exception
+            System.err.println("Erreur lors de la création du SSLContext : " + e.getMessage());
+            e.printStackTrace();
+            throw new ApiRequestException("Erreur lors de la création du SSLContext : " + e.getMessage());
         }
-
-        // Créer un client HTTP
-        HttpClient client = HttpClient.newHttpClient();
+        // Créer un client HTTP avec le SSLContext personnalisé
+        HttpClient client = HttpClient.newBuilder()
+                .sslContext(sslContext)
+                .build();
 
         // Convertir le Map en JSON
         Gson gson = new Gson();
@@ -61,7 +81,7 @@ public class ApiRequester {
 
         // Vérifier si l'utilisateur a un token et l'ajouter à l'en-tête si nécessaire
         String userToken = SessionManager.getInstance().getUserToken();
-        if (userToken != null && !userToken.isEmpty()) {
+        if (userToken!= null &&!userToken.isEmpty()) {
             requestBuilder.header("Authorization", userToken);
         }
 
@@ -73,24 +93,31 @@ public class ApiRequester {
             return client.send(request, HttpResponse.BodyHandlers.ofString());
 
         } catch (java.net.ConnectException e) {
+            System.err.println("Erreur de connexion : " + e.getMessage());
+            e.printStackTrace();
             throw new ApiRequestException("Erreur de connexion : " + e.getMessage());
         } catch (Exception e) {
-            throw new ApiRequestException("Erreur inattendue : " + e.getMessage());
+            // Attraper toutes les autres exceptions
+            System.err.println("Erreur inattendue lors de la requête API : " + e.getMessage());
+            e.printStackTrace();
+            throw new ApiRequestException("Erreur inattendue lors de la requête API : " + e.getMessage());
         }
     }
-    public static HttpResponse<String> patchRequest(String url, Map<String, String> requestBody) throws ApiRequestException {
 
-        // Créer un SSLContext sans vérification SSL
+    public static HttpResponse<String> patchRequest(String url, Map<String, String> requestBody) throws ApiRequestException {
+        // Utiliser le SSLContext personnalisé
         SSLContext sslContext = null;
         try {
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, null, null);
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException("Erreur lors de la création du SSLContext", e);
+            sslContext = createSSLContext("E:\\Dev\\Projets\\PA\\ATD-Java\\mykeystore.jks", "eautantdone");
+        } catch (Exception e) {
+            // Gérer l'exception
+            e.printStackTrace();
         }
 
-        // Créer un client HTTP
-        HttpClient client = HttpClient.newHttpClient();
+        // Créer un client HTTP avec le SSLContext personnalisé
+        HttpClient client = HttpClient.newBuilder()
+                .sslContext(sslContext)
+                .build();
 
         // Convertir le Map en JSON
         Gson gson = new Gson();
@@ -113,18 +140,19 @@ public class ApiRequester {
         }
     }
     public static HttpResponse<String> getRequest(String url) throws ApiRequestException {
-
-        // Créer un SSLContext sans vérification SSL
+        // Utiliser le SSLContext personnalisé
         SSLContext sslContext = null;
         try {
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, null, null);
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException("Erreur lors de la création du SSLContext", e);
+            sslContext = createSSLContext("E:\\Dev\\Projets\\PA\\ATD-Java\\mykeystore.jks", "eautantdone");
+        } catch (Exception e) {
+            // Gérer l'exception
+            e.printStackTrace();
         }
 
-        // Créer un client HTTP
-        HttpClient client = HttpClient.newHttpClient();
+        // Créer un client HTTP avec le SSLContext personnalisé
+        HttpClient client = HttpClient.newBuilder()
+                .sslContext(sslContext)
+                .build();
 
         // Créer une requête GET
         HttpRequest request = HttpRequest.newBuilder()
@@ -142,18 +170,19 @@ public class ApiRequester {
         }
     }
     public static HttpResponse<String> deleteRequest(String url) throws ApiRequestException {
-
-        // Créer un SSLContext sans vérification SSL
+        // Utiliser le SSLContext personnalisé
         SSLContext sslContext = null;
         try {
-            sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(null, null, null);
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException("Erreur lors de la création du SSLContext", e);
+            sslContext = createSSLContext("E:\\Dev\\Projets\\PA\\ATD-Java\\mykeystore.jks", "eautantdone");
+        } catch (Exception e) {
+            // Gérer l'exception
+            e.printStackTrace();
         }
 
-        // Créer un client HTTP
-        HttpClient client = HttpClient.newHttpClient();
+        // Créer un client HTTP avec le SSLContext personnalisé
+        HttpClient client = HttpClient.newBuilder()
+                .sslContext(sslContext)
+                .build();
 
         // Créer une requête DELETE
         HttpRequest request = HttpRequest.newBuilder()
@@ -170,4 +199,5 @@ public class ApiRequester {
             throw new ApiRequestException("Erreur inattendue : " + e.getMessage());
         }
     }
+
 }
