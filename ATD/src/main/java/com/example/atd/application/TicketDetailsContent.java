@@ -9,10 +9,7 @@ import com.google.gson.*;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
@@ -27,13 +24,23 @@ public class TicketDetailsContent {
         content.setSpacing(10);
         content.setPadding(new javafx.geometry.Insets(10));
 
-        Label titleLabel = new Label("Titre : " + ticket.getTitle());
+        Label titleLabel = new Label("Sujet du problème : " + ticket.getTitle());
+        titleLabel.setStyle("-fx-font-size: 24px; -fx-padding: 30px;");
+
+        Separator separator = new Separator();
+
         // Utilisation d'un Text pour la description du ticket
+        Label descriptionLabel = new Label("Description :");
+        descriptionLabel.setStyle("-fx-font-size: 16px; -fx-padding: 10px 0px 0px 30px");
+
         Text descriptionText = new Text(ticket.getDescription());
         descriptionText.setWrappingWidth(360); // Définit la largeur maximale avant le retour à la ligne
-        descriptionText.setStyle("-fx-background-color: #f0f0f0;");
+        descriptionText.setStyle("-fx-padding: 50px; -fx-background-color: #f0f0f0;");
 
-        // Création d'un ScrollPane pour la description du ticket
+        // Scroll pour l'historique des msgs
+        Label scrollLabel = new Label("Historique des messages :");
+        scrollLabel.setStyle("-fx-font-size: 16px; -fx-padding: 10px 0px 0px 30px");
+
         ScrollPane descriptionScrollPane = new ScrollPane(descriptionText);
         descriptionScrollPane.setFitToWidth(true);
         descriptionScrollPane.setFitToHeight(true);
@@ -43,7 +50,7 @@ public class TicketDetailsContent {
 
         ScrollPane messageScrollPane = createMessageContainer(getMessages(ticket.getId()));
 
-        content.getChildren().addAll(titleLabel, descriptionScrollPane, messageScrollPane);
+        content.getChildren().addAll(titleLabel, separator, descriptionLabel, descriptionScrollPane,  scrollLabel, messageScrollPane);
         return content;
     }
 
@@ -55,7 +62,7 @@ public class TicketDetailsContent {
         for (Message message : messages) {
             Label messageLabel = new Label(message.getUserWhoSendTheMessage().getName() + " " + message.getUserWhoSendTheMessage().getForname() + " : " + message.getDescription());
             messageContainer.getChildren().add(messageLabel);
-            messageLabel.setStyle("-fx-background-color:#548FEB; -fx-text-fill: #F1F1F1; -fx-padding: 8px; -fx-border-color: #969696; -fx-border-width: 1px;"); // Ajoutez une bordure et un padding au VBox
+            messageLabel.setStyle("-fx-background-color:#F85866; -fx-text-fill: #F1F1F1; -fx-padding: 8px; -fx-border-width: 1px;"); // Ajoutez une bordure et un padding au VBox
         }
 
         // Création du ScrollPane et ajout du VBox comme son contenu

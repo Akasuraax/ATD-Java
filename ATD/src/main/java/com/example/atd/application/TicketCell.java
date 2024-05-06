@@ -84,7 +84,7 @@ public class TicketCell extends ListCell<Ticket> {
         MenuItem detailsMenuItem = new MenuItem("Détails");
         detailsMenuItem.setOnAction(event -> openTicketDetails(ticket));
 
-        MenuItem archiveMenuItem = new MenuItem("Archivé");
+        MenuItem archiveMenuItem = new MenuItem("Archiver");
         archiveMenuItem.setOnAction(event -> archiveTicket(ticket));
 
         contextMenu.getItems().addAll(menuItem1, supportMenu, detailsMenuItem, archiveMenuItem);

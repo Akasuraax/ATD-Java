@@ -13,7 +13,7 @@ public class TicketDetailsWindow extends Stage {
         TicketDetailsContent contentCreator = new TicketDetailsContent();
         VBox content = contentCreator.createContent(ticket);
 
-        Scene scene = new Scene(content, 600, 800); // Ajustez la taille de la scène si nécessaire
+        Scene scene = new Scene(content, 800, 500); // Ajustez la taille de la scène si nécessaire
         setScene(scene);
     }
 }
