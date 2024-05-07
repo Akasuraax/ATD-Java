@@ -54,6 +54,7 @@ public class TicketCell extends ListCell<Ticket> {
     private ContextMenu createContextMenu(Ticket ticket) {
 
         ContextMenu contextMenu = new ContextMenu();
+        contextMenu.setId("contextMenu");
         // Créer une ComboBox pour modifier la gravité
         ComboBox<Integer> severityComboBox = new ComboBox<>();
         severityComboBox.getItems().addAll(0, 1, 2, 3, 4, 5);

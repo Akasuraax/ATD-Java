@@ -24,7 +24,7 @@ public class MessageCell extends ListCell<Message> {
 
             // Créez un Label pour afficher le message
             Label messageLabel = new Label(item.getDescription());
-            messageLabel.setStyle("-fx-background-color: #ADD8E6; -fx-padding: 10px; -fx-border-radius: 10px; -fx-text-alignment: left;");
+            messageLabel.setStyle("-fx-background-color: #d3e6ef; -fx-padding: 10px; -fx-border-radius: 10px; -fx-text-alignment: left;");
 
             // Ajoutez le nom de l'utilisateur et le message au HBox
             messageContainer.getChildren().addAll(userLabel, messageLabel);

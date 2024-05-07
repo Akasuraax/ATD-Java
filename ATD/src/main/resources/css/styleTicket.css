@@ -54,3 +54,36 @@
     -fx-background-color: none;
     -fx-selection-bar: #ffa5ac !important;
 }
+
+#contextMenu{
+    -fx-background-color: white;
+}
+
+#contextMenu:hover{
+    -fx-selection-bar: #ffa5ac !important;
+    -fx-text-fill: white;
+}
+
+#detailsContainer{
+    -fx-font-size: 16px;
+    -fx-border-color: none;
+    -fx-selection-bar: none !important;
+}
+
+#archiveBtn, #sendMsg{
+    -fx-background-color: #F85866;
+    -fx-text-fill: white !important;
+}
+
+#archiveBtn:hover, #sendMsg:hover{
+    -fx-background-color: #d24753;
+}
+
+#input:focused{
+    -fx-border-color: #F85866;
+}
+
+#split{
+    -fx-border-color: none;
+}
+
