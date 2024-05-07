@@ -1,0 +1,55 @@
+.root {
+    -fx-background-color: #FFFFFF;
+}
+
+#unassignedTitle, #assignedTitle, #completedTitle{
+    -fx-padding:5px;
+}
+
+#assignedTitle{
+    -fx-text-fill: white;
+}
+
+#menuBar{
+    -fx-background-color: white;
+    -fx-border-color: #cccccc;
+}
+
+#unassignedLayout, #completedLayout{
+    fx-background-color: white
+}
+
+#assignedLayout{
+    -fx-background-color:#F85866;
+}
+
+#menu:hover, #item:hover, #menu:pressed, #item:pressed {
+    -fx-background-color: #F85866;
+}
+
+#sortSev{
+    -fx-background-color: #F85866;
+    -fx-text-fill: white;
+    -fx-padding: 5px 10px 5px 10px;
+    -fx-min-width: 250px;
+}
+
+#sortSev:hover{
+    -fx-background-color: #d24753;
+}
+
+#clearSort{
+    -fx-background-color: #8AE179;
+    -fx-text-fill: white;
+    -fx-padding: 5px 10px 5px 10px;
+    -fx-min-width: 250px;
+}
+
+#clearSort:hover{
+    -fx-background-color: #6aaf5c;
+}
+
+#completedView:pressed, #assignedView:pressed, #unassignedView:pressed, #completedView:focused, #assignedView:focused, #unassignedView:focused{
+    -fx-border-color: none;
+    -fx-background-color: none;
+}

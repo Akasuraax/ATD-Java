@@ -71,7 +71,7 @@ public class TicketDetailsContent {
         scrollPane.setPrefSize(500, 200); // Définit la taille préférée du ScrollPane
 
         // Appliquer un style CSS au ScrollPane
-        scrollPane.setStyle("-fx-background-color: #f0f0f0;"); // Exemple de couleur de fond
+        scrollPane.setStyle("-fx-background-color: #ffffff;"); // Exemple de couleur de fond
 
         return scrollPane; // Retourne le ScrollPane
     }
