@@ -52,4 +52,5 @@
 #completedView:pressed, #assignedView:pressed, #unassignedView:pressed, #completedView:focused, #assignedView:focused, #unassignedView:focused{
     -fx-border-color: none;
     -fx-background-color: none;
+    -fx-selection-bar: #ffa5ac !important;
 }
