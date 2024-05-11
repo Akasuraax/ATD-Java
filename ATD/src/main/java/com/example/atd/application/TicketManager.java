@@ -12,11 +12,13 @@ import com.google.gson.reflect.TypeToken;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -53,35 +55,47 @@ public class TicketManager {
         filterCompletedTickets();
 
         Button sortBySeverityButton = new Button("Trier par sévérité");
+        sortBySeverityButton.setId("sortSev");
         sortBySeverityButton.setOnAction(event -> sortBySeverity());
 
         Button clearSortButton = new Button("Annuler le tri");
+        clearSortButton.setId("clearSort");
         clearSortButton.setOnAction(event -> clearSort());
 
         ListView<Ticket> unassignedListView = new ListView<>();
+        unassignedListView.setId("unassignedView");
         unassignedListView.setItems(unassignedTickets);
         unassignedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets, completedTickets));
 
         ListView<Ticket> assignedListView = new ListView<>();
+        assignedListView.setId("assignedView");
         assignedListView.setItems(assignedTickets);
         assignedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets, completedTickets));
 
         ListView<Ticket> completedListView = new ListView<>();
+        completedListView.setId("completedView");
         completedListView.setItems(completedTickets);
         completedListView.setCellFactory(TicketCell.forListView(supportList, unassignedTickets, assignedTickets, completedTickets));
 
         Label unassignedTicketsTitle = new Label("Tickets Non Assignés");
+        unassignedTicketsTitle.setId("unassignedTitle");
+
         Label assignedTicketsTitle = new Label("Tickets Assignés");
+        assignedTicketsTitle.setId("assignedTitle");
+
         Label completedTicketsTitle = new Label("Tickets Terminés");
+        completedTicketsTitle.setId("completedTitle");
 
         HBox sortingButtons = new HBox(sortBySeverityButton, clearSortButton);
 
         VBox unassignedTicketsLayout = new VBox(unassignedTicketsTitle, unassignedListView, sortingButtons);
+        unassignedTicketsLayout.setId("unassignedLayout");
 
         VBox assignedTicketsLayout = new VBox(assignedTicketsTitle, assignedListView);
+        assignedTicketsLayout.setId("assignedLayout");
 
         VBox completedTicketsLayout = new VBox(completedTicketsTitle, completedListView);
-
+        completedTicketsLayout.setId("completedLayout");
 
         // Définir la taille préférée pour la ListView des tickets non assignés
         unassignedListView.setPrefHeight(700); // Hauteur préférée
@@ -96,8 +110,11 @@ public class TicketManager {
         completedListView.setPrefWidth(500); // Largeur préférée
 
         MenuBar menuBar = new MenuBar();
-        Menu menu = new Menu("Fichier");
+        menuBar.setId("menuBar");
+        Menu menu = new Menu("Compte");
+        menu.setId("menu");
         MenuItem logoutMenuItem = new MenuItem("Déconnexion");
+        logoutMenuItem.setId("item");
         menu.getItems().add(logoutMenuItem);
         menuBar.getMenus().add(menu);
 
@@ -115,7 +132,8 @@ public class TicketManager {
         root.setTop(menuBar); // Ajouter le MenuBar en haut
         root.setCenter(new HBox(unassignedTicketsLayout, assignedTicketsLayout, completedTicketsLayout)); // Ajouter les VBox au centre
 
-        Scene scene = new Scene(root, 1500, 800);
+        Scene scene = new Scene(root, 1200, 800);
+        scene.getStylesheets().add(getClass().getResource("/css/styleTicket.css").toExternalForm());
 
         primaryStage.setTitle("Gestion des Tickets");
         primaryStage.setScene(scene);

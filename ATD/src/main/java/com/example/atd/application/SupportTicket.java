@@ -13,6 +13,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -52,10 +53,15 @@ public class SupportTicket extends Application {
         root.setCenter(splitPane);
         root.setRight(ticketDetailsLabel);
 
+        ticketListView.setId("completedView");
+        splitPane.setId("split");
         // Créer le MenuBar et le MenuItem pour le bouton de déconnexion
         MenuBar menuBar = new MenuBar();
-        Menu menu = new Menu("Fichier");
+        menuBar.setId("menuBar");
+        Menu menu = new Menu("Compte");
+        menu.setId("menu");
         MenuItem logoutMenuItem = new MenuItem("Déconnexion");
+        logoutMenuItem.setId("item");
         menu.getItems().add(logoutMenuItem);
         menuBar.getMenus().add(menu);
 
@@ -63,7 +69,6 @@ public class SupportTicket extends Application {
         logoutMenuItem.setOnAction(event -> {
             // Fermez la scène principale ou changez la scène pour la page de connexion
             primaryStage.close();
-            // Ouvrez la scène de connexion ici
             try {
                 Login.changeToLoginScene();
             } catch (Exception e) {
@@ -76,6 +81,8 @@ public class SupportTicket extends Application {
         root.setTop(topContainer);
 
         Scene scene = new Scene(root, 1000, 800);
+        scene.getStylesheets().add(getClass().getResource("/css/styleTicket.css").toExternalForm());
+
         primaryStage.setTitle("Gestion des Tickets");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -83,9 +90,11 @@ public class SupportTicket extends Application {
 
     private void initializeComponents() {
         ticketListView = new ListView<>();
-        ticketDetailsLabel = new Label(); // Utilisé pour afficher les détails du ticket
-        messageInputField = new TextField(); // Utilisé pour l'input du message
+        ticketDetailsLabel = new Label();
+        messageInputField = new TextField();
+        messageInputField.setId("input");
         sendMessageButton = new Button("Envoyer");
+        sendMessageButton.setId("sendMsg");
         messageContainer = new VBox();
 
         messageScrollPane = new ScrollPane();
@@ -136,23 +145,26 @@ public class SupportTicket extends Application {
 
                 // Créer un VBox pour contenir le texte des détails et le bouton d'archivage
                 VBox ticketDetailsContainer = new VBox();
+                ticketDetailsContainer.setId("detailsContainer");
                 ticketDetailsContainer.setSpacing(10); // Ajouter un espace entre le texte et le bouton
+                ticketDetailsContainer.setPadding(new Insets(10));
 
                 // Utiliser un Text pour le texte des détails et le définir comme défilable
                 Text detailsText = new Text(ticketDetails);
-                detailsText.setWrappingWidth(280); // Définit la largeur maximale avant le retour à la ligne
-                detailsText.setStyle("-fx-background-color: #f0f0f0;");
+                detailsText.setWrappingWidth(280);
+                detailsText.setStyle("-fx-background-color: #ffffff; -fx-border-color: none");
 
                 // Créer un ScrollPane pour le Text des détails
                 ScrollPane detailsScrollPane = new ScrollPane(detailsText);
-                detailsScrollPane.setFitToWidth(true); // Ajuster la largeur du ScrollPane à celle du Text
-                detailsScrollPane.setFitToHeight(true); // Ajuster la hauteur du ScrollPane à celle du Text
+                detailsScrollPane.setFitToWidth(true);
+                detailsScrollPane.setFitToHeight(true);
                 detailsScrollPane.setMaxWidth(300);
                 // Ajouter le ScrollPane au VBox
                 ticketDetailsContainer.getChildren().add(detailsScrollPane);
 
                 // Créer et ajouter le bouton d'archivage au VBox
                 Button archiveButton = new Button("Archiver");
+                archiveButton.setId("archiveBtn");
                 archiveButton.setOnAction(event -> archiveTicket(newSelection));
                 ticketDetailsContainer.getChildren().add(archiveButton);
 
@@ -182,10 +194,8 @@ public class SupportTicket extends Application {
 
             ObservableList<Message> ticketMessages = getMessages(ticketId);
             if (!ticketMessages.isEmpty()) {
-                // Ajoutez chaque message à messageContainer
                 for (Message message : ticketMessages) {
-                    // Vous pouvez ajuster cette logique pour déterminer le style et le texte en fonction du type de message
-                    String messageText = message.getDescription(); // Assurez-vous que Message a une méthode getContent()
+                    String messageText = message.getDescription();
                     addMessageToContainer(messageText, message.getIdUser(), message.getUserWhoSendTheMessage(), "#101010");
                 }
             }
@@ -214,31 +224,29 @@ public class SupportTicket extends Application {
     }
 
     private void addMessageToContainer(String messageText, int userId, UserDetails user, String textColor) {
-        // Créez un VBox pour contenir le message
         VBox messageBox = new VBox();
 
-        // Déterminez l'alignement en fonction de l'ID de l'utilisateur
-        Pos alignment = Pos.CENTER_LEFT; // Alignement par défaut à gauche
+        Pos alignment = Pos.CENTER_LEFT;
         String backgroundColor;
         if (userId == SessionManager.getInstance().getUser().getUserDetails().getId()) {
-            alignment = Pos.CENTER_RIGHT; // Alignement à droite si l'ID de l'utilisateur correspond
-            backgroundColor = "#548FEB";
+            alignment = Pos.CENTER_RIGHT;
+            backgroundColor = "#c3ddfd";
         } else {
-            backgroundColor = "#F0F1F1";
+            backgroundColor = "#80b1ed";
         }
         messageBox.setAlignment(alignment);
 
-        // Définissez le style du VBox pour avoir un padding
         messageBox.setStyle("-fx-padding: 8px;");
 
-        // Créez un VBox pour contenir le nom de l'utilisateur et le texte du message
         VBox messageContent = new VBox();
 
-        // Vérifiez si l'ID de l'utilisateur du message est différent de l'ID de l'utilisateur actuel
         if (userId != SessionManager.getInstance().getUser().getUserDetails().getId()) {
-            // Si différent, ajoutez le nom de l'utilisateur
-            Label userNameLabel = new Label(user.getName()); // Assurez-vous que cette méthode existe
-            userNameLabel.setStyle("-fx-font-size: 10px;"); // Réduire la taille de la police pour le nom de l'utilisateur
+            Label userNameLabel = new Label(user.getName());
+            userNameLabel.setStyle("-fx-font-size: 14px; -fx-padding: 5px 0px 5px 0px;");
+            messageContent.getChildren().add(userNameLabel);
+        }else{
+            Label userNameLabel = new Label("Vous");
+            userNameLabel.setStyle("-fx-font-size: 14px; -fx-padding: 5px 0px 5px 0px;");
             messageContent.getChildren().add(userNameLabel);
         }
 
@@ -251,7 +259,7 @@ public class SupportTicket extends Application {
         // Créez un VBox supplémentaire pour contenir le nom de l'utilisateur et le texte du message
         VBox userAndMessageBox = new VBox();
         userAndMessageBox.getChildren().addAll(messageContent);
-        userAndMessageBox.setStyle("-fx-background-color: " + backgroundColor + "; -fx-text-fill: " + textColor + "; -fx-padding: 8px; -fx-border-color: #969696; -fx-border-width: 1px;"); // Ajoutez une bordure et un padding au VBox
+        userAndMessageBox.setStyle("-fx-background-color: " + backgroundColor + "; -fx-text-fill: " + textColor + "; -fx-padding: 8px; -fx-border-width: 1px; -fx-border-radius: 25px; -fx-font-size: 20px"); // Ajoutez une bordure et un padding au VBox
 
         // Ajoutez le VBox supplémentaire au VBox principal
         messageBox.getChildren().add(userAndMessageBox);

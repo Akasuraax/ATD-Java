@@ -27,7 +27,7 @@ public class Login extends Application {
         Parent root = loader.load();
         LoginController controller = loader.getController();
         controller.setMainStage(mainStage);
-        Scene scene = new Scene(root, 300, 275);
+        Scene scene = new Scene(root, 800, 500);
         scene.getStylesheets().add(Login.class.getResource("/css/styleLogin.css").toExternalForm());
         mainStage.setTitle("Login Page");
         mainStage.setScene(scene);

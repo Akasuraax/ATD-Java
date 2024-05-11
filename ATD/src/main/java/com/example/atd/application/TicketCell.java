@@ -54,6 +54,7 @@ public class TicketCell extends ListCell<Ticket> {
     private ContextMenu createContextMenu(Ticket ticket) {
 
         ContextMenu contextMenu = new ContextMenu();
+        contextMenu.setId("contextMenu");
         // Créer une ComboBox pour modifier la gravité
         ComboBox<Integer> severityComboBox = new ComboBox<>();
         severityComboBox.getItems().addAll(0, 1, 2, 3, 4, 5);
@@ -84,7 +85,7 @@ public class TicketCell extends ListCell<Ticket> {
         MenuItem detailsMenuItem = new MenuItem("Détails");
         detailsMenuItem.setOnAction(event -> openTicketDetails(ticket));
 
-        MenuItem archiveMenuItem = new MenuItem("Archivé");
+        MenuItem archiveMenuItem = new MenuItem("Archiver");
         archiveMenuItem.setOnAction(event -> archiveTicket(ticket));
 
         contextMenu.getItems().addAll(menuItem1, supportMenu, detailsMenuItem, archiveMenuItem);
